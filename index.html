@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071c27">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="أوراقي">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>أوراقي</title>
+<style>
+:root{--bg:#f5f2ea;--card:#fff;--tx:#14232c;--mut:#6a766f;--pri:#0f3a4a;--pri2:#efe8d6;--bd:#e7dfca;--on:#fff;--gold:#c9a24a;--bad:#a8362c;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0a1418;--card:#12222a;--tx:#eef1ee;--mut:#9aa9a8;--pri:#e0c26e;--pri2:#1c2f37;--bd:#24383f;--on:#0a1418;--gold:#e0c26e;--bad:#e5766c}}
+*,*:before,*:after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 "Noto Naskh Arabic","Geeza Pro","Damascus","Segoe UI",Tahoma,sans-serif}
+body{padding-bottom:calc(110px + var(--sab));overscroll-behavior-y:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.ban{position:sticky;top:0;z-index:30;padding:calc(10px + var(--sat)) 14px 12px;color:#fff;background:linear-gradient(135deg,#071c27 0%,#0f3a4a 55%,#16566b 100%);border-bottom:1px solid rgba(201,162,74,.6);border-radius:0 0 24px 24px;box-shadow:0 12px 30px rgba(7,28,39,.3);overflow:hidden}
+.orb{position:absolute;border-radius:50%;animation:flt 9s ease-in-out infinite}
+.o1{width:170px;height:170px;left:-50px;top:-60px;background:radial-gradient(circle,rgba(201,162,74,.38),transparent 70%)}
+.o2{width:120px;height:120px;right:-30px;bottom:-40px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);animation-delay:-4s}
+.bt{position:relative;display:flex;align-items:center;gap:12px;max-width:720px;margin:0 auto}
+.logo{width:46px;height:46px;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.35);flex:none}
+.logo img{width:100%;height:100%;display:block}
+.bh{margin:0;font-size:23px;line-height:1.2}.bs{margin:0;color:#d9c48a;font-size:12.5px}
+.stats{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px auto 0;max-width:720px}
+.stats div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:4px;text-align:center}
+.stats b{display:block;font-size:16px;color:#f1d98d;line-height:1.4}.stats span{font-size:12px;color:#cfd9dc}
+.w{max-width:720px;margin:0 auto;padding:14px 16px}
+.sb input,#shc input,#shc select{width:100%;padding:13px 16px;border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);font:inherit}
+.sb input:focus,#shc input:focus{outline:2px solid var(--gold);border-color:transparent}
+.sec{font-size:17px;margin:16px 2px 8px;color:var(--pri);display:flex;align-items:center;gap:8px}
+.sec:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--bd),transparent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--bd);border-top:3px solid var(--gold);border-radius:20px;min-height:150px;padding:18px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;animation:fin .45s ease both;animation-delay:calc(var(--i)*70ms);transition:transform .15s,box-shadow .2s;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.cat:before{content:"";position:absolute;inset:0;background:var(--g);opacity:.1}
+.cat>*{position:relative}.cat:active{transform:scale(.97)}
+.cat .e{width:58px;height:58px;display:grid;place-items:center;font-size:30px;border-radius:18px;background:var(--g);box-shadow:0 6px 14px rgba(0,0,0,.18);margin-bottom:4px}
+.cat b{font-size:17px}.cat .sub{font-size:12.5px;color:var(--mut)}
+.cat .bd{position:absolute;top:10px;inset-inline-start:10px;min-width:28px;height:28px;padding:0 8px;border-radius:14px;background:var(--pri);color:var(--on);font-weight:700;font-size:14px;display:grid;place-items:center}
+.rl{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px}
+.rc{flex:0 0 150px;text-align:start;background:var(--card);border:1px solid var(--bd);border-top:3px solid var(--gold);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:2px;animation:fin .4s ease both}
+.rc i{font-style:normal;font-size:24px}.rc b{font-size:14.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.rc span{font-size:12px;color:var(--mut)}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.top h2{margin:0;flex:1;color:var(--pri);font-size:22px}
+.back{border:0;background:var(--pri2);color:var(--pri);border-radius:12px;padding:8px 14px;font-weight:700}
+.doc{background:var(--card);border:1px solid var(--bd);border-inline-start:3px solid var(--gold);border-radius:14px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;animation:fin .3s ease both}
+.doc .t{flex:1;min-width:0;text-align:start;background:none;border:0;padding:0}
+.doc .t b{display:block;font-size:16.5px;overflow-wrap:anywhere}.doc .t span{color:var(--mut);font-size:13px}
+.doc .ic{font-size:26px}
+.sm{border:0;background:none;color:var(--pri);padding:6px 6px;font-size:13.5px;font-weight:700}.sm.d{color:var(--bad)}
+.empty{text-align:center;color:var(--mut);padding:30px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + var(--sab));z-index:60;background:var(--pri);color:var(--on);padding:10px 18px;border-radius:20px;font-size:14.5px;display:none;max-width:90%;text-align:center}
+.btn{border:0;border-radius:12px;padding:12px 18px;background:var(--pri);color:var(--on);font-weight:700}.btn.s{background:var(--pri2);color:var(--pri)}
+.adds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
+.add{border:0;background:var(--pri);color:var(--on);border-radius:14px;padding:14px 4px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}.add i{font-style:normal;font-size:24px}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:35;display:flex;justify-content:center}
+#bar .in{width:100%;max-width:720px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;background:var(--card);border-top:1px solid var(--bd);box-shadow:0 -8px 24px rgba(0,0,0,.12);padding:6px 10px calc(8px + var(--sab));border-radius:22px 22px 0 0}
+#bar button{border:0;background:none;color:var(--mut);display:flex;flex-direction:column;align-items:center;font-size:12px;padding:6px 0;font-weight:700}
+#bar button i{font-style:normal;font-size:22px}#bar button.on{color:var(--pri)}
+#bar .mid i{width:56px;height:56px;margin-top:-26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#e6c97a,#b8902f);color:#10181a;font-size:30px;box-shadow:0 8px 18px rgba(184,144,47,.5)}
+#sheet{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.45);display:none;align-items:flex-end}#sheet.on{display:flex}
+#shc{width:100%;max-width:720px;margin:0 auto;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + var(--sab));max-height:85vh;overflow-y:auto;animation:fin .25s ease}
+#shc h3{margin:0 0 8px;color:var(--pri)}#shc input,#shc select{margin:6px 0}.row2{display:flex;gap:8px;margin-top:10px}.row2 .btn{flex:1}.m{color:var(--mut);font-size:14px;margin:0}
+#pm{position:fixed;z-index:40;background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.28);max-height:50vh;overflow-y:auto;padding:6px}
+#pm .ph{font-weight:700;color:var(--pri);padding:6px 10px;border-bottom:1px solid var(--bd);margin-bottom:4px}
+#pm button{display:block;width:100%;text-align:start;border:0;background:none;padding:10px;border-radius:10px;overflow-wrap:anywhere}#pm .pe{color:var(--mut);padding:10px}
+#v{position:fixed;inset:0;z-index:50;background:#111;display:none;flex-direction:column}
+#vh{display:flex;align-items:center;gap:10px;padding:calc(8px + var(--sat)) 12px 8px;color:#fff;background:linear-gradient(90deg,#071c27,#0f3a4a)}
+#vh b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#vh button{border:0;background:#2a3d46;color:#fff;border-radius:10px;padding:6px 12px}
+#vs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--sab)}
+#vs canvas,#vs img{display:block;width:100%;height:auto;margin:0 auto 6px;background:#fff}#vs img{max-height:100%;object-fit:contain;background:#111}
+#hint{color:#aaa;font-size:12px;text-align:center;padding:4px 4px calc(4px + var(--sab))}
+input[type=file]{display:none}
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes flt{50%{transform:translate(14px,10px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="ban"><div class="orb o1"></div><div class="orb o2"></div>
+  <div class="bt"><div class="logo"><img src="icon-192.png" alt=""></div><div><h1 class="bh">أوراقي</h1><p class="bs">خزانتك الرسمية للوثائق والاتفاقيات</p></div></div>
+  <div class="stats"><div><b id="sN" data-v="0">0</b><span>مستند محفوظ</span></div><div><b id="sL">—</b><span>آخر إضافة</span></div><div><b>6</b><span>أقسام</span></div></div>
+</header>
+<main class="w">
+  <div id="home">
+    <div class="sb"><input id="q" placeholder="ابحث عن مستند أو اتفاقية…" aria-label="بحث"></div>
+    <section id="recent" style="display:none"><h2 class="sec">آخر المستندات</h2><div class="rl" id="rlist"></div></section>
+    <h2 class="sec">الأقسام</h2>
+    <div class="grid" id="grid"></div><div id="res" style="display:none"></div>
+  </div>
+  <div id="cv" style="display:none">
+    <div class="top"><button class="back" id="back">→ رجوع</button><h2 id="ct"></h2></div>
+    <div id="list"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<nav id="bar"><div class="in"><button id="bh" class="on"><i>🏠</i>الرئيسية</button><button id="ba" class="mid"><i>＋</i>إضافة</button><button id="bq"><i>🔎</i>بحث</button></div></nav>
+<div id="sheet"><div id="shc"></div></div>
+<div id="v"><div id="vh"><button id="vc">✕ إغلاق</button><b id="vt"></b><button id="vsh">📤 مشاركة</button></div><div id="vs"></div><div id="hint">اسحب بإصبعك للأسفل أو للأعلى عند الحافة للرجوع</div></div>
+<input type="file" id="icam" accept="image/*" capture="environment">
+<input type="file" id="ipho" accept="image/*" multiple>
+<input type="file" id="ifil" accept="application/pdf,image/*,.pdf" multiple>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const CATS=[["اتفاقيات","🤝"],["أعمالي","💼"],["أوراق شخصية","🪪"],["فواتير","🧾"],["شهادات ورخص","🎓"],["أخرى","🗂️"]];
+const CATG=["linear-gradient(145deg,#e0bd68,#a8802a)","linear-gradient(145deg,#2c7a8f,#0f3a4a)","linear-gradient(145deg,#3f9b78,#1b5e49)","linear-gradient(145deg,#b5495a,#6e1f2e)","linear-gradient(145deg,#6a6fc4,#2f336f)","linear-gradient(145deg,#8a98a0,#47565d)"];
+const $=id=>document.getElementById(id);
+const esc=s=>{const d=document.createElement("div");d.textContent=s??"";return d.innerHTML};
+const fmt=t=>new Date(t).toLocaleDateString("ar-AE");
+let db,docs=[],cur=null,arm=null,curDoc=null,queue=[],qTotal=0,qDone=0;
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+// ---------- storage (IndexedDB, on this phone only) ----------
+const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const store=(n,m)=>db.transaction(n,m||"readonly").objectStore(n);
+function open(){return new Promise((ok,no)=>{const r=indexedDB.open("awraqi",1);r.onupgradeneeded=()=>{r.result.createObjectStore("meta",{keyPath:"id"});r.result.createObjectStore("files",{keyPath:"id"})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function load(){docs=(await req(store("meta").getAll())).sort((a,b)=>b.ts-a.ts)}
+function put(meta,blob){const t=db.transaction(["meta","files"],"readwrite");t.objectStore("meta").put(meta);if(blob)t.objectStore("files").put({id:meta.id,blob});return new Promise((ok,no)=>{t.oncomplete=ok;t.onerror=()=>no(t.error)})}
+function remove(id){const t=db.transaction(["meta","files"],"readwrite");t.objectStore("meta").delete(id);t.objectStore("files").delete(id);return new Promise(ok=>t.oncomplete=ok)}
+const getBlob=async id=>(await req(store("files").get(id))).blob;
+const toast=m=>{const t=$("toast");t.textContent=m;t.style.display=m?"block":"none";clearTimeout(toast.h);if(m)toast.h=setTimeout(()=>t.style.display="none",2600)};
+
+// ---------- home ----------
+function cnt(id,to){const el=$(id),from=+el.dataset.v||0;el.dataset.v=to;if(from===to||matchMedia("(prefers-reduced-motion:reduce)").matches){el.textContent=to;return}const t0=performance.now();(function s(t){const p=Math.min(1,(t-t0)/600);el.textContent=Math.round(from+(to-from)*p);if(p<1)requestAnimationFrame(s)})(t0)}
+function docRow(d,full){return `<div class="doc"><div class="ic">${d.type==="pdf"?"📕":"🖼️"}</div><button class="t" data-o="${d.id}"><b>${esc(d.title)}</b><span>${full?esc(d.cat)+" · ":""}${fmt(d.ts)}</span></button><button class="sm" data-s="${d.id}">مشاركة</button><button class="sm" data-e="${d.id}">تعديل</button><button class="sm d" data-x="${d.id}">${arm===d.id?"تأكيد؟":"حذف"}</button></div>`}
+function wire(root){
+  root.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>view(b.dataset.o));
+  root.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>share(docs.find(x=>x.id===b.dataset.s)));
+  root.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>editSheet(b.dataset.e));
+  root.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>del(b.dataset.x));
+}
+function home(){
+  cnt("sN",docs.length);$("sL").textContent=docs[0]?fmt(docs[0].ts):"—";
+  const q=$("q").value.trim();
+  $("recent").style.display=docs.length&&!q?"block":"none";
+  $("rlist").innerHTML=docs.slice(0,6).map(d=>`<button class="rc" data-o="${d.id}"><i>${d.type==="pdf"?"📕":"🖼️"}</i><b>${esc(d.title)}</b><span>${esc(d.cat)}</span></button>`).join("");
+  $("grid").innerHTML=CATS.map(([n,e],i)=>`<button class="cat" style="--i:${i};--g:${CATG[i]}" data-c="${n}"><span class="bd">${docs.filter(d=>d.cat===n).length}</span><div class="e">${e}</div><b>${n}</b><span class="sub">مستند</span></button>`).join("");
+  $("grid").style.display=q?"none":"grid";$("res").style.display=q?"block":"none";
+  if(q){const rows=docs.filter(d=>(d.title+" "+d.cat).includes(q));$("res").innerHTML=rows.length?rows.map(d=>docRow(d,1)).join(""):'<div class="empty">لا توجد نتائج</div>'}
+  wire($("home"));
+  $("grid").querySelectorAll(".cat").forEach(b=>{
+    let tm=null,long=false,sx=0,sy=0;const clr=()=>clearTimeout(tm);
+    b.addEventListener("touchstart",e=>{long=false;sx=e.touches[0].clientX;sy=e.touches[0].clientY;tm=setTimeout(()=>{long=true;if(navigator.vibrate)navigator.vibrate(15);menu(b)},450)},{passive:true});
+    b.addEventListener("touchmove",e=>{if(Math.abs(e.touches[0].clientX-sx)>10||Math.abs(e.touches[0].clientY-sy)>10)clr()},{passive:true});
+    b.addEventListener("touchend",clr);b.addEventListener("touchcancel",clr);
+    b.addEventListener("contextmenu",e=>{e.preventDefault();long=true;menu(b)});
+    b.onclick=()=>{if(long){long=false;return}openCat(b.dataset.c)};
+  });
+}
+$("q").oninput=home;
+function openCat(c){closeMenu();cur=c;$("home").style.display="none";$("cv").style.display="block";$("ct").textContent=c;$("bh").classList.remove("on");renderList();scrollTo(0,0)}
+function goHome(){cur=null;$("cv").style.display="none";$("home").style.display="block";$("bh").classList.add("on");home()}
+function renderList(){
+  if(!cur)return;const rows=docs.filter(d=>d.cat===cur);
+  $("list").innerHTML=rows.length?rows.map(d=>docRow(d)).join(""):'<div class="empty">لا توجد مستندات هنا بعد.<br>اضغط ＋ لإضافة مستند.</div>';
+  wire($("list"));
+}
+async function del(id){
+  if(arm!==id){arm=id;refresh();setTimeout(()=>{if(arm===id){arm=null;refresh()}},4000);return}
+  arm=null;await remove(id);await load();refresh();toast("تم الحذف")
+}
+function refresh(){home();renderList()}
+
+// ---------- long-press menu ----------
+function closeMenu(){const m=$("pm");if(m)m.remove();document.removeEventListener("pointerdown",outside,true)}
+function outside(e){const m=$("pm");if(m&&!m.contains(e.target))closeMenu()}
+function menu(b){
+  closeMenu();const c=b.dataset.c,rows=docs.filter(d=>d.cat===c);
+  const m=document.createElement("div");m.id="pm";
+  m.innerHTML=`<div class="ph">${esc(c)}</div>`+(rows.length?rows.map(d=>`<button data-o="${d.id}">${d.type==="pdf"?"📕":"🖼️"} ${esc(d.title)}</button>`).join(""):'<div class="pe">لا توجد مستندات</div>');
+  document.body.appendChild(m);
+  const r=b.getBoundingClientRect(),mw=Math.min(300,innerWidth-24);m.style.width=mw+"px";
+  const left=Math.min(Math.max(12,r.left+r.width/2-mw/2),innerWidth-mw-12);
+  let top=r.bottom+6;if(top+m.offsetHeight>innerHeight-12)top=Math.max(12,r.top-m.offsetHeight-6);
+  m.style.left=left+"px";m.style.top=top+"px";
+  m.querySelectorAll("button").forEach(x=>x.onclick=()=>{closeMenu();view(x.dataset.o)});
+  setTimeout(()=>document.addEventListener("pointerdown",outside,true),50);
+}
+
+// ---------- sheets / adding ----------
+function sheet(h){$("shc").innerHTML=h;$("sheet").classList.add("on")}
+function closeSheet(){$("sheet").classList.remove("on")}
+$("sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet()};
+const catSel=sel=>`<select id="ct2">${CATS.map(([n])=>`<option ${n===sel?"selected":""}>${n}</option>`).join("")}</select>`;
+function addSheet(){
+  sheet(`<h3>إضافة مستند</h3><p class="m">${cur?"سيُضاف إلى «"+esc(cur)+"»":"ستختار القسم بعد التصوير أو اختيار الملف"}</p><div class="adds"><button class="add" id="s1"><i>📷</i>كاميرا</button><button class="add" id="s2"><i>🖼️</i>صورة</button><button class="add" id="s3"><i>📄</i>ملف</button></div>`);
+  [["s1","icam"],["s2","ipho"],["s3","ifil"]].forEach(([b,i])=>$(b).onclick=()=>{closeSheet();$(i).click()});
+}
+["icam","ipho","ifil"].forEach(i=>$(i).onchange=()=>{queue=[...$(i).files];qTotal=queue.length;qDone=0;$(i).value="";nextFile()});
+const isPdf=f=>f.type==="application/pdf"||/\.pdf$/i.test(f.name||"");
+function nextFile(){
+  const f=queue.shift();if(!f){closeSheet();if(qDone)toast("تم حفظ "+qDone+" مستند ✓");return}
+  const base=(f.name||"").replace(/\.[^.]+$/,"");
+  const t0=(!base||/^(image|img|photo|scan|pxl|\d)/i.test(base))?"مستند "+fmt(Date.now()):base;
+  sheet(`<h3>حفظ المستند${qTotal>1?" ("+(qTotal-queue.length)+" من "+qTotal+")":""}</h3><input id="ti" value="${esc(t0)}" placeholder="عنوان المستند">${catSel(cur||"أخرى")}<div class="row2"><button class="btn" id="sv">حفظ</button><button class="btn s" id="sk">تخطي</button></div>`);
+  $("ti").select();
+  $("sv").onclick=async()=>{
+    try{await put({id:"d"+Date.now()+Math.random().toString(36).slice(2,6),cat:$("ct2").value,title:$("ti").value.trim()||t0,type:isPdf(f)?"pdf":"img",name:f.name||"",ts:Date.now()},f);qDone++;await load();refresh()}
+    catch(e){toast("تعذّر الحفظ: المساحة ممتلئة؟")}
+    nextFile();
+  };
+  $("sk").onclick=nextFile;
+}
+function editSheet(id){
+  const d=docs.find(x=>x.id===id);if(!d)return;
+  sheet(`<h3>تعديل المستند</h3><input id="ti" value="${esc(d.title)}">${catSel(d.cat)}<div class="row2"><button class="btn" id="sv">حفظ</button><button class="btn s" id="sk">إلغاء</button></div>`);
+  $("sv").onclick=async()=>{d.title=$("ti").value.trim()||d.title;d.cat=$("ct2").value;await put(d);await load();refresh();closeSheet()};
+  $("sk").onclick=closeSheet;
+}
+
+// ---------- full-screen viewer ----------
+async function view(id){
+  const d=docs.find(x=>x.id===id);if(!d)return;curDoc=d;
+  const s=$("vs");s.innerHTML="";$("vt").textContent=d.title;$("v").style.display="flex";document.body.style.overflow="hidden";s.scrollTop=0;
+  const blob=await getBlob(id);
+  if(d.type!=="pdf"){const im=new Image();im.src=URL.createObjectURL(blob);s.appendChild(im);return}
+  if(!window.pdfjsLib){const u=URL.createObjectURL(blob);s.innerHTML=`<p style="color:#fff;padding:20px">يحتاج عرض ملفات PDF إلى اتصال بالإنترنت مرة واحدة. <a style="color:#9cd" href="${u}" target="_blank">فتح الملف</a></p>`;return}
+  try{
+    const pdf=await pdfjsLib.getDocument({data:await blob.arrayBuffer()}).promise,dpr=Math.min(devicePixelRatio||1,2),W=s.clientWidth||360;
+    for(let n=1;n<=pdf.numPages;n++){
+      if($("v").style.display==="none")return;
+      const p=await pdf.getPage(n),b=p.getViewport({scale:1}),vp=p.getViewport({scale:W/b.width*dpr});
+      const c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;s.appendChild(c);
+      await p.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+    }
+  }catch(e){const u=URL.createObjectURL(blob);s.innerHTML=`<p style="color:#fff;padding:20px">تعذّر عرض الملف. <a style="color:#9cd" href="${u}" target="_blank">فتحه في صفحة جديدة</a></p>`}
+}
+function closeV(){$("v").style.display="none";$("vs").innerHTML="";document.body.style.overflow=""}
+$("vc").onclick=closeV;$("vsh").onclick=()=>share(curDoc);
+let y0=0,top0=false,bot0=false;const vs=$("vs");
+vs.addEventListener("touchstart",e=>{y0=e.touches[0].clientY;top0=vs.scrollTop<=1;bot0=vs.scrollTop+vs.clientHeight>=vs.scrollHeight-2},{passive:true});
+vs.addEventListener("touchend",e=>{const dy=e.changedTouches[0].clientY-y0;if((dy>110&&top0)||(dy<-110&&bot0))closeV()},{passive:true});
+
+// ---------- share ----------
+async function share(d){
+  if(!d)return;
+  try{
+    const b=await getBlob(d.id),ext=d.type==="pdf"?"pdf":((b.type.split("/")[1]||"jpg").replace("jpeg","jpg"));
+    const f=new File([b],(d.title.replace(/[\\/:*?"<>|]/g,"")||"مستند")+"."+ext,{type:b.type||(d.type==="pdf"?"application/pdf":"image/jpeg")});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:d.title});return}
+    const u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=f.name;a.click();toast("تم تنزيل الملف");
+  }catch(e){if(!e||e.name!=="AbortError")toast("تعذّرت المشاركة")}
+}
+
+// ---------- bar + boot ----------
+$("back").onclick=goHome;
+$("bh").onclick=()=>{closeSheet();closeMenu();$("q").value="";goHome();scrollTo({top:0,behavior:"smooth"})};
+$("ba").onclick=addSheet;
+$("bq").onclick=()=>{if(cur)goHome();$("q").focus();scrollTo({top:0,behavior:"smooth"})};
+(async()=>{
+  try{db=await open();await load();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){toast("تعذّر فتح التخزين على هذا المتصفح")}
+  home();
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
