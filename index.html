@@ -126,6 +126,28 @@ input[type=file]{display:none}
 @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
 @keyframes rot{to{transform:rotate(360deg)}}@keyframes shk{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Photo library and gesture viewer */
+#list.photo-grid{display:grid;grid-template-columns:repeat(var(--photo-cols,3),minmax(0,1fr));gap:5px;padding:5px 0 100px}
+.photo-card{position:relative;min-width:0;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--bd)}
+.photo-card .photo-open{display:block;width:100%;padding:0;border:0;background:transparent;text-align:start}
+.photo-card .th{width:100%;height:auto;aspect-ratio:1;border-radius:0;display:grid;place-items:center;overflow:hidden}
+.photo-card .th img{width:100%;height:100%;object-fit:cover}
+.photo-card b{display:block;font-size:12px;padding:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.photo-card .mo{position:absolute;bottom:1px;left:1px;width:30px;height:30px;background:var(--bg);border-radius:8px}
+.photo-card b{padding-left:32px}.photo-card.on{outline:3px solid var(--ac);outline-offset:-3px}
+.photo-card .ck{position:absolute;top:5px;right:5px;z-index:2;background:var(--bg);border-radius:50%}
+#photo-tools{display:flex;align-items:center;gap:6px;margin:8px 0;flex-wrap:wrap}#photo-tools button{min-height:40px}
+#v.photo-mode{background:#000;overscroll-behavior:none}
+#v.photo-mode #vp{overflow:hidden;touch-action:none;user-select:none}
+#v.photo-mode .sl{overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center}
+#v.photo-mode .sl img{width:100%;height:100%;object-fit:contain;background:transparent;transform-origin:center;will-change:transform;pointer-events:none}
+#v.photo-mode #vh{background:linear-gradient(#000b,transparent);border:0;transition:opacity .2s}
+#v.photo-mode #vi{background:#0009;color:#fff;border:0}
+#v.photo-mode.controls-hidden #vh{opacity:0;pointer-events:none}
+#v.photo-mode.controls-hidden #vi{opacity:0}
+@media(prefers-reduced-motion:reduce){#vp,#vh{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -550,6 +572,7 @@ function renderList(){
   const rows=catRows();renderTop();
   const sb=$("selb");if(sb)sb.style.display=rows.length?"":"none";
   $("list").innerHTML=rows.length?rows.map(d=>docRow(d,cur===ALL)).join(""):`<div class="empty">${ico("folder")}لا توجد مستندات في «${esc(catTitle())}» بعد.<br>اضغط ＋ لإضافة مستند.</div>`;
+  renderPhotoLibrary(rows);
   wire($("list"),()=>catRows());
 }
 function renderAll(){renderHome();renderList();clipUI()}
@@ -934,17 +957,17 @@ function view(id,list){
   if(!open){const arr=(list&&list.length?list:live()).map(x=>x.id);vlist=arr.includes(id)?arr:[id,...arr]}
   vidx=vlist.indexOf(id);
   if(!open){$("v").style.display="block";document.body.style.overflow="hidden";push("viewer");
-    const hn=+ls.get("awraqi_vh")||0;if(hn<2){ls.set("awraqi_vh",hn+1);toast("اسحب يميناً أو يساراً للتنقل · اضغط مرتين للتكبير · اضغط مطولاً واسحب للإغلاق",{ms:5000})}}
+    const hn=+ls.get("awraqi_vh")||0;if(hn<2){ls.set("awraqi_vh",hn+1);toast("اسحب للتنقل · كبّر بإصبعين أو بنقرتين · اسحب الصورة للأسفل للإغلاق",{ms:5000})}}
   return showDoc(d);
 }
 async function showDoc(d){
-  curDoc=d;const tok=++vtok,vp=$("vp");
+  curDoc=d;resetPhotoGesture();$("v").classList.toggle("photo-mode",d.type!=="pdf");$("v").classList.remove("controls-hidden");const tok=++vtok,vp=$("vp");
   vp.innerHTML="";vp.className="";vp.style.transform="";$("v").style.background="";$("vt").textContent=d.title;$("vd").textContent=vlist.length>1?"مستند "+(vidx+1)+" من "+vlist.length:"";
   $("vh").classList.remove("hid");$("vi").textContent="";vurls.forEach(u=>URL.revokeObjectURL(u));vurls=[];
   const s0=mkSlide();s0.innerHTML='<p class="ph0">جارٍ التحميل…</p>';vp.appendChild(s0);
   let blob;try{blob=await getBlob(d.id)}catch(e){s0.innerHTML='<p class="ph0">تعذّر العثور على الملف المحفوظ.</p>';return}
   if(tok!==vtok)return;
-  if(d.type!=="pdf"){const u=URL.createObjectURL(blob);vurls.push(u);const im=new Image();im.onerror=()=>{s0.innerHTML='<p class="ph0">تعذّر عرض الصورة. جرّب المشاركة لفتحها في تطبيق آخر.</p>'};im.onload=()=>{s0.innerHTML="";s0.appendChild(im)};im.src=u;return}
+  if(d.type!=="pdf"){const u=URL.createObjectURL(blob);vurls.push(u);const im=new Image();im.onerror=()=>{s0.innerHTML='<p class="ph0">تعذّر عرض الصورة. جرّب المشاركة لفتحها في تطبيق آخر.</p>'};im.onload=()=>{if(tok!==vtok)return;s0.innerHTML="";im.alt=d.title;im.draggable=false;s0.appendChild(im);$("vi").textContent=(vidx+1)+" / "+vlist.length};im.src=u;return}
   try{
     const doc=await openPdf(blob);if(tok!==vtok){doc.destroy();return}
     const dpr=Math.min(devicePixelRatio||1,2),W=vp.clientWidth||360,slides=[s0];s0.innerHTML='<p class="ph0">…</p>';
@@ -970,6 +993,7 @@ function mkSlide(){
   const s=document.createElement("div");s.className="sl";let last=0,tapT=0,tm=null;
   s.addEventListener("scroll",()=>{const y=s.scrollTop;if(y>last+6&&y>40)$("vh").classList.add("hid");else if(y<last-6)$("vh").classList.remove("hid");last=y},{passive:true});
   s.addEventListener("click",()=>{
+    if($("v").classList.contains("photo-mode"))return;
     const now=Date.now();
     if(now-tapT<320){tapT=0;clearTimeout(tm);const z=s.classList.toggle("z");$("vp").classList.toggle("zm",z);if(z)setTimeout(()=>{s.scrollLeft=(s.scrollWidth-s.clientWidth)/2},0);return}
     tapT=now;tm=setTimeout(()=>$("vh").classList.toggle("hid"),320);
@@ -978,7 +1002,7 @@ function mkSlide(){
 }
 function setIdx(){const vp=$("vp"),n=vp.children.length;$("vi").textContent=n>1?(Math.round(vp.scrollLeft/(vp.clientWidth||1))+1)+" / "+n+" صفحة":""}
 $("vp").addEventListener("scroll",setIdx,{passive:true});
-function hideViewer(){vtok++;const v=$("v");v.style.display="none";$("vp").innerHTML="";$("vp").className="";$("vp").style.transform="";v.style.background="";document.body.style.overflow="";$("vlift").style.display="none";vurls.forEach(u=>URL.revokeObjectURL(u));vurls=[]}
+function hideViewer(){resetPhotoGesture();$("v").classList.remove("photo-mode","controls-hidden");vtok++;const v=$("v");v.style.display="none";$("vp").innerHTML="";$("vp").className="";$("vp").style.transform="";v.style.background="";document.body.style.overflow="";$("vlift").style.display="none";vurls.forEach(u=>URL.revokeObjectURL(u));vurls=[]}
 function closeViewer(){hideViewer();popL("viewer")}
 let ht=null,drag=false,hy=0,hx=0,edgeStart=0,edgeEnd=false;const V=$("v");
 V.addEventListener("touchstart",e=>{
@@ -1125,6 +1149,59 @@ async function updateApp(){
   try{if("serviceWorker" in navigator)for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();for(const k of await caches.keys())await caches.delete(k)}catch(e){}
   location.reload();
 }
+
+
+/* Photo controls: native-size originals remain in IndexedDB. */
+let photoGrid=ls.get("awraqi_photo_grid")!=="off",photoCols=Number(ls.get("awraqi_photo_cols"))||3;
+function renderPhotoLibrary(rows){
+  let bar=$("photo-tools");if(!bar){bar=document.createElement("div");bar.id="photo-tools";$("list").before(bar)}
+  bar.innerHTML=rows.length?`<button class="pill" id="photo-layout">${photoGrid?"عرض قائمة":"عرض شبكة"}</button>${photoGrid?'<button class="pill" id="photo-size">حجم المصغّرات</button>':''}`:"";
+  const list=$("list");list.classList.toggle("photo-grid",photoGrid&&rows.length>0);list.style.setProperty("--photo-cols",photoCols);
+  if(rows.length&&photoGrid)list.innerHTML=rows.map(d=>`<div class="photo-card${sel.has(d.id)?' on':''}" data-id="${esc(d.id)}">${selMode?`<div class="ck">${sel.has(d.id)?ico("check",16):"○"}</div>`:''}<button class="photo-open nolp" data-o="${esc(d.id)}" aria-label="${esc(d.title)}">${thumbH(d)}<b>${esc(d.title)}</b></button>${selMode?'':`<button class="mo" data-m="${esc(d.id)}" aria-label="خيارات">${ico("more",18)}</button>`}</div>`).join('');
+  if($("photo-layout"))$("photo-layout").onclick=()=>{photoGrid=!photoGrid;ls.set("awraqi_photo_grid",photoGrid?"on":"off");renderList()};
+  if($("photo-size"))$("photo-size").onclick=()=>{photoCols=photoCols===3?4:photoCols===4?2:3;ls.set("awraqi_photo_cols",photoCols);renderList()};
+}
+let pg={scale:1,x:0,y:0},photoTapTimer=null,photoLastTap=0,photoSuppressClick=0;
+function photoImage(){return $("vp").querySelector("img")}
+function resetPhotoGesture(){pg={scale:1,x:0,y:0};clearTimeout(photoTapTimer);photoLastTap=0}
+function drawPhoto(animate=false){
+  const im=photoImage();if(!im)return;
+  const rect=$("vp").getBoundingClientRect(),k=Math.min(rect.width/(im.naturalWidth||rect.width),rect.height/(im.naturalHeight||rect.height));
+  const mx=Math.max(0,((im.naturalWidth||rect.width)*k*pg.scale-rect.width)/2),my=Math.max(0,((im.naturalHeight||rect.height)*k*pg.scale-rect.height)/2);
+  pg.x=Math.max(-mx,Math.min(mx,pg.x));pg.y=Math.max(-my,Math.min(my,pg.y));
+  im.style.transition=animate?'transform .2s ease':'none';im.style.transform=`translate(${pg.x}px,${pg.y}px) scale(${pg.scale})`;
+}
+function photoDouble(x,y){clearTimeout(photoTapTimer);photoLastTap=0;const r=$("vp").getBoundingClientRect();if(pg.scale>1.05){pg.scale=1;pg.x=pg.y=0}else{pg.scale=2.5;pg.x=(r.width/2-(x-r.left))*1.5;pg.y=(r.height/2-(y-r.top))*1.5}drawPhoto(true)}
+function photoTap(x,y){const now=Date.now();if(now-photoLastTap<300){photoDouble(x,y);return}photoLastTap=now;photoTapTimer=setTimeout(()=>{$("v").classList.toggle("controls-hidden");photoLastTap=0},300)}
+const photoV=$("v"),photoVP=$("vp");
+const photoActive=()=>photoV.classList.contains("photo-mode");
+const touchDistance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+function beginPhoto(e){const t=e.touches;pg.moved=false;pg.multi=t.length>1;pg.mode=t.length>1?'pinch':pg.scale>1.01?'pan':'pending';pg.startX=t[0].clientX;pg.startY=t[0].clientY;pg.baseX=pg.x;pg.baseY=pg.y;pg.dx=pg.dy=0;if(t.length>1){pg.distance=touchDistance(t);pg.baseScale=pg.scale;pg.midX=(t[0].clientX+t[1].clientX)/2;pg.midY=(t[0].clientY+t[1].clientY)/2}}
+photoV.addEventListener('touchstart',e=>{if(!photoActive()||!e.target.closest('#vp'))return;e.stopImmediatePropagation();clearTimeout(photoTapTimer);beginPhoto(e)},{capture:true,passive:false});
+photoV.addEventListener('touchmove',e=>{
+ if(!photoActive()||!e.target.closest('#vp'))return;e.stopImmediatePropagation();e.preventDefault();const t=e.touches;
+ if(t.length>1){if(pg.mode!=='pinch')beginPhoto(e);pg.multi=true;pg.moved=true;const r=photoVP.getBoundingClientRect(),mx=pg.midX-r.left-r.width/2,my=pg.midY-r.top-r.height/2;pg.scale=Math.max(1,Math.min(5,pg.baseScale*touchDistance(t)/Math.max(1,pg.distance)));const ratio=pg.scale/pg.baseScale;pg.x=mx-(mx-pg.baseX)*ratio;pg.y=my-(my-pg.baseY)*ratio;drawPhoto();return}
+ pg.dx=t[0].clientX-pg.startX;pg.dy=t[0].clientY-pg.startY;
+ if(Math.hypot(pg.dx,pg.dy)>8){pg.moved=true;clearTimeout(photoTapTimer)}
+ if(pg.mode==='pan'){pg.x=pg.baseX+pg.dx;pg.y=pg.baseY+pg.dy;drawPhoto();return}
+ if(pg.mode==='pending'&&pg.moved)pg.mode=Math.abs(pg.dx)>Math.abs(pg.dy)?'swipe':pg.dy>0?'dismiss':'blocked';
+ const im=photoImage();if(im&&pg.mode==='dismiss'){im.style.transition='none';im.style.transform=`translateY(${pg.dy}px) scale(${Math.max(.75,1-pg.dy/1500)})`;photoV.style.background=`rgba(0,0,0,${Math.max(.3,1-pg.dy/500)})`}
+ if(im&&pg.mode==='swipe'){im.style.transition='none';im.style.transform=`translateX(${pg.dx*.5}px)`}
+},{capture:true,passive:false});
+function endPhoto(e){
+ if(!photoActive()||!e.target.closest('#vp'))return;e.stopImmediatePropagation();photoSuppressClick=Date.now()+450;
+ if(e.touches.length){const wasMulti=pg.multi;beginPhoto(e);pg.multi=wasMulti;return}
+ const cancelled=e.type==='touchcancel',mode=pg.mode,dx=pg.dx,dy=pg.dy,multi=pg.multi;pg.mode=null;photoV.style.background='';
+ if(!cancelled&&!multi&&mode==='dismiss'&&dy>110){closeViewer();return}
+ if(!cancelled&&!multi&&mode==='swipe'&&Math.abs(dx)>65){drawPhoto(true);nextDoc(dx<0?1:-1);return}
+ if(pg.scale<1.05){pg.scale=1;pg.x=pg.y=0}drawPhoto(true);
+ if(!cancelled&&!multi&&!pg.moved){const t=e.changedTouches[0];photoTap(t.clientX,t.clientY)}
+}
+photoV.addEventListener('touchend',endPhoto,{capture:true,passive:false});photoV.addEventListener('touchcancel',endPhoto,{capture:true,passive:false});
+photoVP.addEventListener('click',e=>{if(!photoActive())return;e.stopImmediatePropagation();if(Date.now()<photoSuppressClick)return;photoTap(e.clientX,e.clientY)},true);
+photoVP.addEventListener('wheel',e=>{if(!photoActive()||!e.ctrlKey)return;e.preventDefault();pg.scale=Math.max(1,Math.min(5,pg.scale*Math.exp(-e.deltaY*.01)));drawPhoto()},{passive:false});
+addEventListener('resize',()=>{if(photoActive())drawPhoto()});
+addEventListener('keydown',e=>{if($("v").style.display!=="block"||e.target.matches('input,textarea,select'))return;if(e.key==='Escape')closeViewer();if(photoActive()&&e.key==='ArrowRight')nextDoc(1);if(photoActive()&&e.key==='ArrowLeft')nextDoc(-1)});
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
