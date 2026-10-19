@@ -166,7 +166,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.1";
+const VERSION="4.2";
 const CATS=[["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90,MAXMB=60;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -597,18 +597,32 @@ const EXTMIME={pdf:"application/pdf",jpg:"image/jpeg",jpeg:"image/jpeg",png:"ima
 async function isZip(f){if(ZIPRE.test(f.name||"")||/zip/.test(f.type||""))return true;if(f.size>=4){const h=new Uint8Array(await f.slice(0,4).arrayBuffer());return h[0]===0x50&&h[1]===0x4b&&h[2]===3&&h[3]===4}return false}
 /* minimal ZIP reader: central directory + stored/deflate entries, streamed from the file (no full load in memory) */
 async function readZip(file){
-  const u16=(d,o)=>d.getUint16(o,true),u32=(d,o)=>d.getUint32(o,true);
-  const tailLen=Math.min(file.size,65557),tail=new DataView(await file.slice(file.size-tailLen).arrayBuffer());
+  const u16=(d,o)=>d.getUint16(o,true),u32=(d,o)=>d.getUint32(o,true),u64=(d,o)=>Number(d.getBigUint64(o,true));
+  const tailLen=Math.min(file.size,65557+22),tailStart=file.size-tailLen,tail=new DataView(await file.slice(tailStart).arrayBuffer());
   let e=-1;for(let i=tailLen-22;i>=0;i--){if(u32(tail,i)===0x06054b50){e=i;break}}
   if(e<0)throw new Error("notzip");
-  const n=u16(tail,e+10),cdSize=u32(tail,e+12),cdOff=u32(tail,e+16);
-  if(n===0xFFFF||cdOff===0xFFFFFFFF||cdSize===0xFFFFFFFF)throw new Error("zip64");
+  let n=u16(tail,e+10),cdSize=u32(tail,e+12),cdOff=u32(tail,e+16);
+  if(n===0xFFFF||cdOff===0xFFFFFFFF||cdSize===0xFFFFFFFF){
+    /* ZIP64: locator sits right before the end-of-central-directory record */
+    let loc=null;
+    if(e>=20&&u32(tail,e-20)===0x07064b50)loc=new DataView(tail.buffer,e-20,20);
+    else{const lo=tailStart+e-20;if(lo>=0)loc=new DataView(await file.slice(lo,lo+20).arrayBuffer());}
+    if(!loc||u32(loc,0)!==0x07064b50)throw new Error("zip64");
+    const off64=u64(loc,8),r=new DataView(await file.slice(off64,off64+56).arrayBuffer());
+    if(r.byteLength<56||u32(r,0)!==0x06064b50)throw new Error("zip64");
+    n=u64(r,32);cdSize=u64(r,40);cdOff=u64(r,48);
+  }
   const cd=new DataView(await file.slice(cdOff,cdOff+cdSize).arrayBuffer()),cdb=new Uint8Array(cd.buffer);
   const out={files:[],skipped:0,encrypted:0};let p=0;
   for(let k=0;k<n&&p+46<=cd.byteLength;k++){
     if(u32(cd,p)!==0x02014b50)throw new Error("notzip");
-    const flags=u16(cd,p+8),method=u16(cd,p+10),csz=u32(cd,p+20),nl=u16(cd,p+28),el=u16(cd,p+30),cl=u16(cd,p+32),lho=u32(cd,p+42);
-    let name;try{name=new TextDecoder(flags&0x800?"utf-8":"utf-8",{fatal:true}).decode(cdb.subarray(p+46,p+46+nl))}catch(_){name=new TextDecoder("windows-1252").decode(cdb.subarray(p+46,p+46+nl))}
+    const flags=u16(cd,p+8),method=u16(cd,p+10),nl=u16(cd,p+28),el=u16(cd,p+30),cl=u16(cd,p+32);
+    let csz=u32(cd,p+20),usz=u32(cd,p+24),lho=u32(cd,p+42);
+    if(usz===0xFFFFFFFF||csz===0xFFFFFFFF||lho===0xFFFFFFFF){
+      let q=p+46+nl;const end=q+el;
+      while(q+4<=end){const id=u16(cd,q),sz=u16(cd,q+2);if(id===1){let r=q+4;if(usz===0xFFFFFFFF){usz=u64(cd,r);r+=8}if(csz===0xFFFFFFFF){csz=u64(cd,r);r+=8}if(lho===0xFFFFFFFF){lho=u64(cd,r);r+=8}break}q+=4+sz}
+    }
+    let name;try{name=new TextDecoder("utf-8",{fatal:true}).decode(cdb.subarray(p+46,p+46+nl))}catch(_){name=new TextDecoder("windows-1252").decode(cdb.subarray(p+46,p+46+nl))}
     p+=46+nl+el+cl;
     const base=name.split("/").pop(),ext=(base.split(".").pop()||"").toLowerCase();
     if(!base||name.endsWith("/")||/(^|\/)__MACOSX\//.test(name)||base.startsWith(".")){continue}
@@ -638,7 +652,7 @@ async function expandAll(files){
         const extra=[z.skipped?z.skipped+" ملف بصيغة غير مدعومة تم تخطيه":"",z.encrypted?z.encrypted+" ملف محمي تم تخطيه":""].filter(Boolean).join(" · ");
         toast("تم استخراج "+z.files.length+" ملف من «"+f.name+"»"+(extra?" ("+extra+")":""),{ms:4500});
         res.push(...z.files);
-      }catch(e){hideSheet();toast(e.message==="zip64"?"هذا الملف المضغوط كبير جداً (ZIP64). فُكّه من تطبيق «الملفات» ثم اختر الملفات.":e.message==="nodecomp"?"هذا المتصفح لا يدعم فك الضغط. فُكّه من تطبيق «الملفات» ثم اختر الملفات.":"تعذّر قراءة الملف المضغوط؛ قد يكون تالفاً.",{err:1,ms:5500})}
+      }catch(e){hideSheet();toast(e.message==="zip64"?"فهرس هذا الملف المضغوط كبير جداً. فُكّه من تطبيق «الملفات» ثم اختر الملفات.":e.message==="nodecomp"?"هذا المتصفح لا يدعم فك الضغط. فُكّه من تطبيق «الملفات» ثم اختر الملفات.":"تعذّر قراءة الملف المضغوط؛ قد يكون تالفاً.",{err:1,ms:5500})}
     }else res.push(f);
   }
   return res;
@@ -842,9 +856,10 @@ async function softDelete(ids){
 }
 function trashSheet(){
   const T=trash().sort((a,b)=>b.del-a.del);
-  sheet(`<h3>المحذوفات</h3><p class="m">تُحذف نهائياً بعد 30 يوماً من نقلها.</p>${T.length?T.map(d=>`<div class="doc" style="margin-top:10px">${thumbH(d)}<div class="t"><b>${esc(d.title)}</b><span>${esc(d.cat)} · حُذف ${fmt(d.del)}</span></div><button class="mo" data-r="${d.id}" aria-label="استعادة">${ico("undo",20)}</button><button class="mo" data-x="${d.id}" aria-label="حذف نهائي" style="color:var(--bad)">${ico("trash",20)}</button></div>`).join(""):`<div class="empty">لا توجد مستندات محذوفة</div>`}${T.length?`<div class="row2"><button class="btn d" id="te">إفراغ المحذوفات</button></div>`:""}`);
+  sheet(`<h3>المحذوفات</h3><p class="m">تُحذف نهائياً بعد 30 يوماً من نقلها.</p>${T.length?T.map(d=>`<div class="doc" style="margin-top:10px">${thumbH(d)}<div class="t"><b>${esc(d.title)}</b><span>${esc(d.cat)} · حُذف ${fmt(d.del)}</span></div><button class="mo" data-r="${d.id}" aria-label="استعادة">${ico("undo",20)}</button><button class="mo" data-x="${d.id}" aria-label="حذف نهائي" style="color:var(--bad)">${ico("trash",20)}</button></div>`).join(""):`<div class="empty">لا توجد مستندات محذوفة</div>`}${T.length?`<div class="row2"><button class="btn" id="tra">استعادة الكل (${T.length})</button></div><div class="row2"><button class="btn d" id="te">إفراغ المحذوفات نهائياً</button></div>`:""}`);
   $("shc").querySelectorAll("[data-r]").forEach(b=>b.onclick=async()=>{const d=docs.find(x=>x.id===b.dataset.r);delete d.del;await put(d);await load();renderAll();trashSheet();toast("تمت الاستعادة ✓")});
   $("shc").querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>confirmSheet("حذف نهائي؟","لا يمكن استرجاع هذا المستند بعد الحذف.","حذف نهائي",async()=>{await removeForever(b.dataset.x);await load();renderAll();trashSheet()}));
+  const tra=$("tra");if(tra)tra.onclick=async()=>{tra.disabled=true;try{for(const d of T){delete d.del;await put(d)}await load();renderAll();hideSheet();toast("تمت استعادة "+T.length+" مستند ✓")}catch(e){toast(errMsg(e),{err:1})}};
   const te=$("te");if(te)te.onclick=()=>confirmSheet("إفراغ المحذوفات؟","سيُحذف "+T.length+" مستند نهائياً ولا يمكن استرجاعها.","إفراغ نهائي",async()=>{for(const d of T)await removeForever(d.id);await load();renderAll();toast("تم الإفراغ")});
 }
 function attnSheet(){
