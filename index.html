@@ -260,7 +260,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5.1";
+const VERSION="4.5.2";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -276,9 +276,10 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:
 const getKey=()=>ls.get("awraqi_key")||"";
 const newId=()=>"d"+Date.now()+Math.random().toString(36).slice(2,7);
 const excelMIME={xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',xls:'application/vnd.ms-excel',xlsm:'application/vnd.ms-excel.sheet.macroEnabled.12',xlsb:'application/vnd.ms-excel.sheet.binary.macroEnabled.12',csv:'text/csv'};
-const isExcel=f=>/\.(xlsx|xls|xlsm|xlsb|csv)$/i.test(f.name||'')||Object.values(excelMIME).includes((f.type||'').split(';')[0]);
-const excelDoc=d=>d?.type==='excel'||isExcel({name:d?.name,type:d?.mime});
-const docFormat=d=>{const ext=extensionOf({name:d.name});return ext?ext.toUpperCase():(excelDoc(d)?'Excel':d.type==='pdf'?'PDF':d.type==='video'?'فيديو':d.type==='audio'?'صوت':d.type==='img'?'صورة':'ملف')};
+const isAppleSidecar=f=>(f.name||'').split(/[\\/]/).pop().startsWith('._');
+const isExcel=f=>!isAppleSidecar(f)&&(/\.(xlsx|xls|xlsm|xlsb|csv)$/i.test(f.name||'')||Object.values(excelMIME).includes((f.type||'').split(';')[0]));
+const excelDoc=d=>!isAppleSidecar(d)&&(d?.type==='excel'||isExcel({name:d?.name,type:d?.mime}));
+const docFormat=d=>{if(isAppleSidecar(d))return 'بيانات Apple مساندة';const ext=extensionOf({name:d.name});return ext?ext.toUpperCase():(excelDoc(d)?'Excel':d.type==='pdf'?'PDF':d.type==='video'?'فيديو':d.type==='audio'?'صوت':d.type==='img'?'صورة':'ملف')};
 
 /* Every file is stored as original bytes. Preview support never gates saving. */
 const extraMIME={mov:'video/quicktime',mp4:'video/mp4',m4v:'video/mp4',webm:'video/webm',mkv:'video/x-matroska',avi:'video/x-msvideo',mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',docm:'application/vnd.ms-word.document.macroEnabled.12',ppt:'application/vnd.ms-powerpoint',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',odt:'application/vnd.oasis.opendocument.text',txt:'text/plain',json:'application/json',xml:'application/xml',html:'text/html',htm:'text/html',js:'text/javascript',css:'text/css',md:'text/markdown',zip:'application/zip',rar:'application/vnd.rar','7z':'application/x-7z-compressed',gz:'application/gzip',tar:'application/x-tar',svg:'image/svg+xml',bmp:'image/bmp',tif:'image/tiff',tiff:'image/tiff'};
@@ -286,10 +287,10 @@ const extensionOf=f=>{const name=f.name||'';return name.includes('.')?name.split
 const isVideo=f=>/^video\//i.test(f.type||'')||/\.(mov|mp4|m4v|webm|mkv|avi|3gp|mts|m2ts|mpeg|mpg)$/i.test(f.name||'');
 const isAudio=f=>/^audio\//i.test(f.type||'')||/\.(mp3|m4a|wav|ogg|aac|flac|opus|aiff|wma)$/i.test(f.name||'');
 const isText=f=>/^text\//i.test(f.type||'')||/\.(txt|md|json|xml|html?|js|css|log|yaml|yml|sql|ini|rtf)$/i.test(f.name||'');
-const fileKind=f=>isExcel(f)?'excel':isPdf(f)?'pdf':isVideo(f)?'video':isAudio(f)?'audio':isImg(f)?'img':isText(f)?'text':'file';
-const fileMime=f=>f.type&&f.type!=='application/octet-stream'?f.type:(excelMIME[extensionOf(f)]||extraMIME[extensionOf(f)]||({pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',heic:'image/heic',heif:'image/heif',webp:'image/webp',gif:'image/gif'})[extensionOf(f)]||'application/octet-stream');
+const fileKind=f=>isAppleSidecar(f)?'file':isExcel(f)?'excel':isPdf(f)?'pdf':isVideo(f)?'video':isAudio(f)?'audio':isImg(f)?'img':isText(f)?'text':'file';
+const fileMime=f=>isAppleSidecar(f)?'application/octet-stream':f.type&&f.type!=='application/octet-stream'?f.type:(excelMIME[extensionOf(f)]||extraMIME[extensionOf(f)]||({pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',heic:'image/heic',heif:'image/heif',webp:'image/webp',gif:'image/gif'})[extensionOf(f)]||'application/octet-stream');
 const docKind=d=>d.type||fileKind({name:d.name,type:d.mime});
-const defaultCategory=f=>isExcel(f)?'جداول Excel':isVideo(f)?'الفيديوهات':isAudio(f)?'الصوتيات':/\.(docx?|docm|pptx?|odt)$/i.test(f.name||'')?'ملفات مكتبية':'أخرى';
+const defaultCategory=f=>isAppleSidecar(f)?'أخرى':isExcel(f)?'جداول Excel':isVideo(f)?'الفيديوهات':isAudio(f)?'الصوتيات':/\.(docx?|docm|pptx?|odt)$/i.test(f.name||'')?'ملفات مكتبية':'أخرى';
 const sizeLabel=n=>n>=1073741824?(n/1073741824).toFixed(1)+' GB':n>=1048576?(n/1048576).toFixed(1)+' MB':n>=1024?Math.ceil(n/1024)+' KB':n+' B';
 function generalFileInfo(f){return{type:'other',label:isVideo(f)?'فيديو':isAudio(f)?'ملف صوتي':'ملف',name:'',title:f.name?defTitle(f):'',cat:defaultCategory(f),exp:'',summary:'يُحفظ الملف الأصلي بصيغته، ويمكن تنزيله أو مشاركته وفتح المعاينة المتاحة.',level:'none',good:['سيُحفظ الملف الأصلي دون تحويل'],warn:[],cands:[]}}
 function originalCard(d,text='',width=1200){
@@ -302,6 +303,7 @@ async function officeText(blob,name){
  const z=await readZip(blob,{only});let out=[];for(const f of z.files){const xml=new DOMParser().parseFromString(await f.text(),'application/xml');if(xml.querySelector('parsererror'))continue;const paragraphs=[...xml.getElementsByTagNameNS('*','p')];out.push(...paragraphs.map(p=>p.textContent))}return out.join('\n').slice(0,12000);
 }
 async function otherMedia(d,blob){
+ if(isAppleSidecar(d)){const node=originalCard(d,'ملف بيانات مساندة أنشأه Apple داخل الأرشيف.\nهذا الملف ليس المقطع أو المستند الأصلي.\nافتح الملف المطابق الذي لا يبدأ اسمه بـ ._\nيمكنك تنزيل هذه البيانات المساندة أو مشاركتها دون تغيير.');return{node,width:node.width,height:node.height}}
  let text='';try{if(d.type==='text')text=await blob.slice(0,524288).text();else text=await officeText(blob,d.name||'')}catch(e){}
  const node=originalCard(d,text);return{node,width:node.width,height:node.height};
 }
@@ -347,7 +349,7 @@ function toast(m,o={}){const t=$("toast");clearTimeout(tT);t.className="toast on
 const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const store=(n,m)=>db.transaction(n,m||"readonly").objectStore(n);
 function openDB(){return new Promise((ok,no)=>{if(!window.indexedDB)return no(new Error("noidb"));const r=indexedDB.open("awraqi",1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"id"});if(!d.objectStoreNames.contains("files"))d.createObjectStore("files",{keyPath:"id"})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);r.onblocked=()=>no(new Error("blocked"))})}
-async function load(){docs=(await req(store("meta").getAll())).sort((a,b)=>b.ts-a.ts)}
+async function load(){docs=(await req(store("meta").getAll())).map(d=>isAppleSidecar(d)?{...d,type:'file',thumb:originalCard(d,'',320).toDataURL('image/jpeg',.72)}:d).sort((a,b)=>b.ts-a.ts)}
 /* Compatible with v1 IndexedDB. Large originals use bounded blob parts in the same store. */
 const STORAGE_PART_SIZE=2*1048576;
 function storageWrite(meta,record,deleteKeys=[]){return new Promise((ok,no)=>{const t=db.transaction(['meta','files'],'readwrite');if(meta)t.objectStore('meta').put(meta);if(record)t.objectStore('files').put(record);for(const key of deleteKeys)t.objectStore('files').delete(key);t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error||new Error('abort'))})}
@@ -1123,6 +1125,7 @@ async function mediaFor(a){
  const promise=(async()=>{
   const active=a.id===vlist[vidx]&&a.page===vpage;
   if(!active){const im=new Image();im.alt=d.title;await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=d.thumb||originalCard(d,'',320).toDataURL('image/jpeg',.7)});return{node:im,width:im.naturalWidth,height:im.naturalHeight,low:true}}
+  if(isAppleSidecar(d))return otherMedia(d,null);
   if(d.type==='video'||d.type==='audio')return playableMedia(d,await getBlob(d.id));
   if(d.type!=='img'&&d.type!=='pdf'&&!excelDoc(d))return otherMedia(d,await getBlob(d.id));
   if(excelDoc(d)){const m=await workbookFor(d),c=excelCanvas(m.sheets[a.page]);return{node:c,width:c.width,height:c.height}}
