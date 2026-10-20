@@ -260,7 +260,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5";
+const VERSION="4.5.1";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -291,7 +291,7 @@ const fileMime=f=>f.type&&f.type!=='application/octet-stream'?f.type:(excelMIME[
 const docKind=d=>d.type||fileKind({name:d.name,type:d.mime});
 const defaultCategory=f=>isExcel(f)?'جداول Excel':isVideo(f)?'الفيديوهات':isAudio(f)?'الصوتيات':/\.(docx?|docm|pptx?|odt)$/i.test(f.name||'')?'ملفات مكتبية':'أخرى';
 const sizeLabel=n=>n>=1073741824?(n/1073741824).toFixed(1)+' GB':n>=1048576?(n/1048576).toFixed(1)+' MB':n>=1024?Math.ceil(n/1024)+' KB':n+' B';
-function generalFileInfo(f){return{type:'other',label:isVideo(f)?'فيديو':isAudio(f)?'ملف صوتي':'ملف',name:'',title:f.name?defTitle(f):'',cat:defaultCategory(f),exp:'',summary:'يُحفظ الملف الأصلي بصيغته، ويمكن تنزيله أو مشاركته وفتح المعاينة المتاحة.',level:'none',good:['النسخة الأصلية محفوظة دون تحويل'],warn:[],cands:[]}}
+function generalFileInfo(f){return{type:'other',label:isVideo(f)?'فيديو':isAudio(f)?'ملف صوتي':'ملف',name:'',title:f.name?defTitle(f):'',cat:defaultCategory(f),exp:'',summary:'يُحفظ الملف الأصلي بصيغته، ويمكن تنزيله أو مشاركته وفتح المعاينة المتاحة.',level:'none',good:['سيُحفظ الملف الأصلي دون تحويل'],warn:[],cands:[]}}
 function originalCard(d,text='',width=1200){
  const c=document.createElement('canvas');c.width=width;c.height=Math.round((text?1200:720)*width/1200);const x=c.getContext('2d'),k=width/1200;x.scale(k,k);x.fillStyle='#163765';x.fillRect(0,0,1200,c.height/k);x.strokeStyle='#dabb78';x.lineWidth=3;x.strokeRect(30,30,1140,c.height/k-60);x.fillStyle='#f1d89d';x.textAlign='center';x.font='bold 68px sans-serif';x.fillText(docFormat(d),600,155,1060);x.direction='rtl';x.font='bold 38px sans-serif';x.fillStyle='#fff';x.fillText(d.title||d.name||'ملف',600,235,1040);x.font='25px sans-serif';x.fillStyle='#c9d9ee';x.fillText(sizeLabel(d.size||0),600,290);
  if(text){x.font='22px monospace';const lines=text.replace(/\r/g,'').split('\n').filter(Boolean).slice(0,22);lines.forEach((line,i)=>{x.textAlign=/[\u0600-\u06ff]/.test(line)?'right':'left';x.direction=/[\u0600-\u06ff]/.test(line)?'rtl':'ltr';x.fillText(line.slice(0,120),x.textAlign==='right'?1120:80,360+i*32,1040)})}
@@ -321,8 +321,8 @@ async function videoThumbnail(blob){
  try{return await new Promise((ok,no)=>{let finished=false;const finish=(err)=>{if(finished)return;finished=true;clearTimeout(timer);if(err)return no(err);const c=document.createElement('canvas'),k=320/(v.videoWidth||320);c.width=320;c.height=Math.max(1,Math.round((v.videoHeight||180)*k));try{c.getContext('2d').drawImage(v,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.75))}catch(e){no(e)}};const timer=setTimeout(()=>finish(new Error('video')),6000);v.onloadeddata=()=>finish();v.onerror=()=>finish(new Error('codec'));v.load()})}finally{v.pause();v.removeAttribute('src');v.load();URL.revokeObjectURL(u)}
 }
 let mediaThumbBusy=false;
-async function genMediaThumbs(){if(mediaThumbBusy||!db)return;mediaThumbBusy=true;try{for(const d of live().filter(x=>x.previewPending)){let thumb;try{thumb=await videoThumbnail(await getBlob(d.id))}catch(e){}const current=docs.find(x=>x.id===d.id);if(current&&!current.del){if(thumb)current.thumb=thumb;delete current.previewPending;await put(current);renderAll()}}}finally{mediaThumbBusy=false}}
-function archiveChoice(file){return new Promise(resolve=>{sheet(`<h3>${esc(file.name||'ملف ZIP')}</h3><p class="m">اختر طريقة إضافته.</p><button class="act" id="archive-extract">${ico('folder')}فك الضغط وإضافة جميع الملفات</button><button class="act" id="archive-keep">${ico('save')}حفظ الملف المضغوط كما هو</button><div class="row2"><button class="btn s" id="archive-cancel">إلغاء</button></div>`,true);$('archive-extract').onclick=()=>{hideSheet();resolve('extract')};$('archive-keep').onclick=()=>{hideSheet();resolve('keep')};$('archive-cancel').onclick=()=>{hideSheet();resolve('cancel')}})}
+async function genMediaThumbs(){}
+function archiveChoice(file){return new Promise(resolve=>{sheet(`<h3>${esc(file.name||'ملف ZIP')}</h3><p class="m">اختر طريقة إضافته.</p><button class="act" id="archive-extract">${ico('folder')}فك الضغط وحفظ الملفات تباعًا</button><button class="act" id="archive-keep">${ico('save')}حفظ الملف المضغوط كما هو</button><div class="row2"><button class="btn s" id="archive-cancel">إلغاء</button></div>`,true);$('archive-extract').onclick=()=>{hideSheet();resolve('extract')};$('archive-keep').onclick=()=>{hideSheet();resolve('keep')};$('archive-cancel').onclick=()=>{hideSheet();resolve('cancel')}})}
 
 const isPdf=f=>f.type==="application/pdf"||/\.pdf$/i.test(f.name||"");
 const isImg=f=>/^image\//.test(f.type||"")||/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name||"");
@@ -348,9 +348,27 @@ const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no
 const store=(n,m)=>db.transaction(n,m||"readonly").objectStore(n);
 function openDB(){return new Promise((ok,no)=>{if(!window.indexedDB)return no(new Error("noidb"));const r=indexedDB.open("awraqi",1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"id"});if(!d.objectStoreNames.contains("files"))d.createObjectStore("files",{keyPath:"id"})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);r.onblocked=()=>no(new Error("blocked"))})}
 async function load(){docs=(await req(store("meta").getAll())).sort((a,b)=>b.ts-a.ts)}
-function put(meta,blob){return new Promise((ok,no)=>{const t=db.transaction(["meta","files"],"readwrite");t.objectStore("meta").put(meta);if(blob)t.objectStore("files").put({id:meta.id,blob});t.oncomplete=ok;t.onerror=t.onabort=()=>no(t.error||new Error("abort"))})}
-function removeForever(id){return new Promise((ok,no)=>{const t=db.transaction(["meta","files"],"readwrite");t.objectStore("meta").delete(id);t.objectStore("files").delete(id);t.oncomplete=ok;t.onerror=t.onabort=()=>no(t.error)})}
-async function getBlob(id){const r=await req(store("files").get(id));if(!r)throw new Error("missing");return r.blob}
+/* Compatible with v1 IndexedDB. Large originals use bounded blob parts in the same store. */
+const STORAGE_PART_SIZE=2*1048576;
+function storageWrite(meta,record,deleteKeys=[]){return new Promise((ok,no)=>{const t=db.transaction(['meta','files'],'readwrite');if(meta)t.objectStore('meta').put(meta);if(record)t.objectStore('files').put(record);for(const key of deleteKeys)t.objectStore('files').delete(key);t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error||new Error('abort'))})}
+async function put(meta,blob){
+ if(!blob)return storageWrite(meta);
+ if(blob.size<=STORAGE_PART_SIZE){const old=await req(store('files').get(meta.id));await storageWrite({...meta,size:blob.size},{id:meta.id,blob},old?.parts||[]);return}
+ return saveIncomingStream({...meta,size:blob.size},blob.stream());
+}
+async function saveIncomingStream(meta,stream,onProgress){
+ const previous=await req(store('files').get(meta.id)),keys=[],prefix=meta.id+'::'+newId()+'::',reader=stream.getReader();let buffered=[],bufferedSize=0,total=0;
+ async function flush(){if(!bufferedSize)return;const key=prefix+keys.length,blob=new Blob(buffered,{type:'application/octet-stream'});await storageWrite(null,{id:key,blob});keys.push(key);buffered=[];bufferedSize=0;if(onProgress)onProgress(total)}
+ try{
+  while(true){const {value,done}=await reader.read();if(done)break;let pos=0;while(pos<value.byteLength){const n=Math.min(STORAGE_PART_SIZE-bufferedSize,value.byteLength-pos);buffered.push(value.subarray(pos,pos+n));bufferedSize+=n;pos+=n;total+=n;if(bufferedSize===STORAGE_PART_SIZE)await flush()}}
+  await flush();if(meta.size!=null&&meta.size!==total)throw new Error('truncated');
+  await storageWrite({...meta,size:total},{id:meta.id,parts:keys,size:total,mime:meta.mime||'application/octet-stream'},previous?.parts||[]);
+ }catch(e){try{await reader.cancel()}catch(_){}try{await storageWrite(null,null,keys)}catch(_){}throw e}finally{reader.releaseLock()}
+}
+async function removeForever(id){const file=await req(store('files').get(id));return new Promise((ok,no)=>{const t=db.transaction(['meta','files'],'readwrite');t.objectStore('meta').delete(id);t.objectStore('files').delete(id);for(const key of file?.parts||[])t.objectStore('files').delete(key);t.oncomplete=ok;t.onerror=t.onabort=()=>no(t.error)})}
+async function getBlob(id){const r=await req(store('files').get(id));if(!r)throw new Error('missing');if(r.blob)return r.blob;if(!r.parts)throw new Error('missing');const blobs=[];for(const key of r.parts){const part=await req(store('files').get(key));if(!part?.blob)throw new Error('missing');blobs.push(part.blob)}return new Blob(blobs,{type:r.mime||'application/octet-stream'})}
+function incomingMeta(file,o={}){const meta={id:newId(),cat:o.cat||defaultCategory(file),title:o.title||defTitle(file),type:fileKind(file),name:file.name||'',originalPath:file.archivePath||'',mime:fileMime(file),size:file.size,ts:Date.now(),exp:o.exp||'',kind:o.kind||'',ver:o.ver||'',summary:o.summary||''};meta.thumb=originalCard(meta,'',320).toDataURL('image/jpeg',.72);return meta}
+
 async function verifySaved(id,hasBlob){const m=await req(store("meta").get(id));if(!m)throw new Error("verify");if(hasBlob){const n=await req(store("files").count(IDBKeyRange.only(id)));if(!n)throw new Error("verify")}}
 const errMsg=e=>{const n=e&&(e.name||"");if(n==="QuotaExceededError"||/quota/i.test(e&&e.message||""))return"مساحة الجوال ممتلئة. احذف مستندات غير مهمة أو أفرغ المحذوفات، ثم حاول مرة أخرى.";return"تعذّر الحفظ. لم يُحفظ أي شيء، حاول مرة أخرى."};
 
@@ -377,16 +395,13 @@ const pdfReady=()=>window.pdfjsLib?Promise.resolve(window.pdfjsLib):new Promise(
 async function openPdf(blob){const lib=await pdfReady();return lib.getDocument({data:await blob.arrayBuffer(),useSystemFonts:true}).promise}
 async function pageCanvas(blob,pdf,w){
   if(pdf){const doc=await openPdf(blob);try{return await docPageCanvas(doc,1,w)}finally{doc.destroy()}}
-  const bmp=await createImageBitmap(blob),m=Math.min(1,w/bmp.width),c=document.createElement("canvas");c.width=Math.round(bmp.width*m);c.height=Math.round(bmp.height*m);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);return c;
+  const bmp=await createImageBitmap(blob),m=Math.min(1,w/bmp.width),c=document.createElement("canvas");c.width=Math.round(bmp.width*m);c.height=Math.round(bmp.height*m);try{c.getContext("2d").drawImage(bmp,0,0,c.width,c.height)}finally{bmp.close?.()}return c;
 }
 async function docPageCanvas(doc,n,w){const p=await doc.getPage(n),b=p.getViewport({scale:1}),vp=p.getViewport({scale:w/b.width});const c=document.createElement("canvas");c.width=Math.round(vp.width);c.height=Math.round(vp.height);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);await p.render({canvasContext:x,viewport:vp}).promise;return c}
 const b64=c=>c.toDataURL("image/jpeg",.86).split(",")[1];
 async function makeThumb(blob,pdf){return (await pageCanvas(blob,pdf,220)).toDataURL("image/jpeg",.72)}
 let thBusy=false;
-async function genThumbs(){
-  if(thBusy)return;thBusy=true;
-  try{for(const d of live().filter(x=>!x.thumb&&!x.thumbFail)){try{d.thumb=excelDoc(d)?await excelThumbnail(await getBlob(d.id)):await makeThumb(await getBlob(d.id),d.type==="pdf");await put(d)}catch(e){d.thumbFail=1;try{await put(d)}catch(_){}}renderAll()}}finally{thBusy=false}
-}
+async function genThumbs(){}
 
 /* ---------- multi-page scan -> one PDF (no library) ---------- */
 async function makePdf(blobs){
@@ -545,6 +560,7 @@ const PROMPT2=`اقرأ الصور المرفقة (صفحات مستند واح�
 async function analyze(f,pdf,o={}){
   if(isExcel(f))return excelLocalInfo(f);
   if(!isPdf(f)&&!isImg(f))return generalFileInfo(f);
+  if(f.size>8*1048576)return generalFileInfo(f);
   const step=(i,m)=>o.onStep&&o.onStep(i,m);const useAI=!!getKey()&&!o.noai;
   const res={type:"other",label:"",name:"",nameAlt:[],ident:"",exp:"",summary:"",cat:null,level:"none",good:[],warn:[],cands:[],mrz:null,pages:0};
   /* 1. local extraction */
@@ -766,7 +782,7 @@ async function readZip(file,opts={}){
     n=u64(r,32);cdSize=u64(r,40);cdOff=u64(r,48);
   }
   const cd=new DataView(await file.slice(cdOff,cdOff+cdSize).arrayBuffer()),cdb=new Uint8Array(cd.buffer);
-  const out={files:[],skipped:0,encrypted:0,details:[]};let p=0;
+  const out={files:[],saved:0,skipped:0,encrypted:0,details:[]};let p=0;
   for(let k=0;k<n&&p+46<=cd.byteLength;k++){
     if(u32(cd,p)!==0x02014b50)throw new Error("notzip");
     const flags=u16(cd,p+8),method=u16(cd,p+10),nl=u16(cd,p+28),el=u16(cd,p+30),cl=u16(cd,p+32);
@@ -785,6 +801,12 @@ async function readZip(file,opts={}){
     const lh=new DataView(await file.slice(lho,lho+30).arrayBuffer());
     if(u32(lh,0)!==0x04034b50)throw new Error("notzip");
     const start=lho+30+u16(lh,26)+u16(lh,28);let blob=file.slice(start,start+csz);
+    if(opts.saveStream){
+      try{let stream=blob.stream();if(method===8){if(typeof DecompressionStream==='undefined')throw new Error('nodecomp');stream=stream.pipeThrough(new DecompressionStream('deflate-raw'))}
+       await opts.saveStream({name:base,archivePath:name,size:usz,type:EXTMIME[ext]||'application/octet-stream'},stream);out.saved++;
+      }catch(e){out.details.push({name:base,reason:'تعذّر حفظ هذا العنصر؛ أُدرج الأرشيف الأصلي للحفظ'})}
+      continue;
+    }
     if(method===8){
       if(typeof DecompressionStream==="undefined")throw new Error("nodecomp");
       blob=await new Response(blob.stream().pipeThrough(new DecompressionStream("deflate-raw"))).blob();
@@ -798,9 +820,14 @@ async function expandAll(files){
  for(const f of files){
   if(!await isZip(f)){res.push(f);continue}
   const choice=await archiveChoice(f);if(choice==='cancel')continue;if(choice==='keep'){res.push(f);continue}
-  sheet(`<div class="pr"><div class="sp"></div><b>جارٍ فك الضغط لكل الملفات…</b></div>`,true);
-  try{const z=await readZip(f);hideSheet();res.push(...z.files);if(z.details.length||!z.files.length){res.push(f);lastImportReport.push(...z.details.map(d=>({...d,reason:d.reason+'؛ أُدرج الأرشيف الأصلي ضمن الملفات الجاهزة للحفظ'})));toast('أُدرج الأرشيف الأصلي أيضاً لحفظ المحتوى الذي تعذّر فكه',{ms:4500})}else toast('تم تجهيز جميع الملفات: '+z.files.length,{ms:3000})}
-  catch(e){hideSheet();res.push(f);lastImportReport.push({name:f.name,reason:'تعذّر فك الأرشيف؛ أُدرج الملف الأصلي كاملاً ضمن قائمة الحفظ'});toast('سيُحفظ الأرشيف الأصلي دون فك الضغط',{ms:4500})}
+  let completed=0;
+  sheet(`<h3>حفظ محتويات الأرشيف</h3><p class="m">تُحفظ الملفات تباعًا دون تجميعها في الذاكرة.</p><div class="pr"><div class="sp"></div><b id="archive-progress">جارٍ البدء…</b></div>`,true);
+  try{const z=await readZip(f,{saveStream:async(info,stream)=>{const meta=incomingMeta(info,{cat:cur&&cur!==ALL?cur:defaultCategory(info)}),status=$('archive-progress');if(status)status.textContent=info.name;
+    await saveIncomingStream(meta,stream,bytes=>{const label=$('archive-progress');if(label)label.textContent=info.name+' · '+Math.min(100,Math.round(bytes/Math.max(1,info.size)*100))+'٪'});completed++;
+    const label=$('archive-progress');if(label)label.textContent='تم حفظ '+completed+' ملف';
+   }});hideSheet();if(z.details.length||!z.saved){res.push(f);lastImportReport.push(...z.details);toast('تم حفظ '+z.saved+' ملف؛ أُدرج الأرشيف الأصلي أيضاً للحفظ',{ms:5000})}else toast('تم حفظ جميع ملفات الأرشيف: '+z.saved,{ms:4500})}
+  catch(e){hideSheet();res.push(f);lastImportReport.push({name:f.name,reason:'تعذّر إكمال فك الضغط؛ '+completed+' ملف حُفظ، وأُدرج الأرشيف الأصلي كاملاً للحفظ'});toast('تم حفظ '+completed+' ملف. سيُحفظ الأرشيف الأصلي أيضاً',{ms:4500})}
+  await load();renderAll();
  }
  return res;
 }
@@ -851,6 +878,7 @@ function defTitle(f){const base=(f.name||"").replace(/\.[^.]+$/,"");return(!base
 async function safeAnalyze(blob,pdf){
   if(isExcel(blob))return excelLocalInfo(blob);
   if(!isPdf(blob)&&!isImg(blob))return generalFileInfo(blob);
+  if(blob.size>8*1048576)return generalFileInfo(blob);
   const useAI=!!getKey();
   const steps=useAI?["قراءة صفحات الملف","القراءة الأولى (Claude)","قراءة ثانية مستقلة للتأكد","مطابقة الأسماء وفحص الأرقام"]:["قراءة نص الملف وفحص الأرقام"];
   let aborter=new AbortController();curAbort=aborter;
@@ -906,10 +934,12 @@ async function nextFile(){
     onSave:async v=>{await saveDoc(f,v);qDone++;await load();renderAll();nextFile()}});
 }
 async function saveDoc(f,o){
- const kind=fileKind(f),meta={id:newId(),cat:o.cat||defaultCategory(f),title:o.title||defTitle(f),type:kind,name:f.name||'',originalPath:f.archivePath||'',mime:fileMime(f),size:f.size,ts:Date.now(),exp:o.exp||'',kind:o.kind||'',ver:o.ver||'',summary:o.summary||''};
- try{meta.thumb=kind==='excel'?await excelThumbnail(f):kind==='pdf'||kind==='img'?await makeThumb(f,kind==='pdf'):originalCard(meta,'',320).toDataURL('image/jpeg',.8)}catch(e){meta.thumb=originalCard(meta,'',320).toDataURL('image/jpeg',.8)}
- if(kind==='video')meta.previewPending=true;
- await put(meta,f.slice(0,f.size,meta.mime));await verifySaved(meta.id,true);return meta.id;
+ const meta=incomingMeta(f,o);await put(meta,f.slice(0,f.size,meta.mime));await verifySaved(meta.id,true);
+ // Save first. Preview work is bounded, optional and never runs for large files.
+ if(f.size<=3*1048576&&['img','pdf','excel'].includes(meta.type)){
+  try{meta.thumb=meta.type==='excel'?await excelThumbnail(f):await makeThumb(f,meta.type==='pdf');await put(meta)}catch(e){}
+ }
+ return meta.id;
 }
 
 /* ---------- smart organize: read many documents and file each in its card ---------- */
@@ -1077,7 +1107,7 @@ function clearViewerTimers(){clearTimeout(viewerTapTimer);clearTimeout(viewerHol
 function resetViewerZoom(){clearViewerTimers();vg={scale:1,x:0,y:0,mode:null}}
 function releaseViewerMedia(){pauseMedia();for(const p of mediaCache.values())p.then(m=>{releaseMedia(m)},()=>{});mediaCache.clear();for(const p of pdfCache.values())p.then(d=>d.destroy(),()=>{});pdfCache.clear()}
 async function viewerPDF(d){if(!pdfCache.has(d.id)){const p=getBlob(d.id).then(openPdf);pdfCache.set(d.id,p);p.catch(()=>{if(pdfCache.get(d.id)===p)pdfCache.delete(d.id)})}return pdfCache.get(d.id)}
-async function viewerCount(d){return excelDoc(d)?(await workbookFor(d)).sheets.length:d.type==='pdf'?(await viewerPDF(d)).numPages:1}
+async function viewerCount(d){if(d.id!==vlist[vidx]&&!pdfCache.has(d.id))return 1;return excelDoc(d)?(await workbookFor(d)).sheets.length:d.type==='pdf'?(await viewerPDF(d)).numPages:1}
 function pageKey(a){return a.id+':'+a.page}
 async function adjacentPage(dir){
   const d=viewerCurrent();if(!d)return null;
@@ -1091,6 +1121,8 @@ async function mediaFor(a){
  const key=pageKey(a);if(mediaCache.has(key))return mediaCache.get(key);
  const d=docs.find(x=>x.id===a.id);if(!d)throw new Error('missing');
  const promise=(async()=>{
+  const active=a.id===vlist[vidx]&&a.page===vpage;
+  if(!active){const im=new Image();im.alt=d.title;await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=d.thumb||originalCard(d,'',320).toDataURL('image/jpeg',.7)});return{node:im,width:im.naturalWidth,height:im.naturalHeight,low:true}}
   if(d.type==='video'||d.type==='audio')return playableMedia(d,await getBlob(d.id));
   if(d.type!=='img'&&d.type!=='pdf'&&!excelDoc(d))return otherMedia(d,await getBlob(d.id));
   if(excelDoc(d)){const m=await workbookFor(d),c=excelCanvas(m.sheets[a.page]);return{node:c,width:c.width,height:c.height}}
@@ -1115,14 +1147,15 @@ async function mountViewer(){
  const positions=[[-1,prev],[0,current],[1,next]],kept=new Map();
  // Reuse the already-visible neighboring node at the exact end of a swipe.
  for(const [pos,a]of positions){if(!a)continue;const key=pageKey(a),slot=viewerSlots.get(key)||document.createElement('div');slot.className='media-slot';slot.dataset.key=key;slot.style.left=(pos*100)+'%';slot.setAttribute('aria-hidden',pos===0?'false':'true');slot.dataset.position=pos;kept.set(key,slot);if(!slot.parentNode)viewerTrack.appendChild(slot);
-  if(!slot.dataset.ready){slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';if(Number(slot.dataset.position)===0)applyViewerZoom()}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
+  if(pos===0&&slot.dataset.low==='1'){slot.dataset.ready='';mediaCache.delete(key)}
+  if(!slot.dataset.ready){if(!slot.querySelector('.media-frame'))slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';slot.dataset.low=m.low?'1':'0';if(Number(slot.dataset.position)===0)applyViewerZoom()}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
  }
  for(const [key,slot]of viewerSlots)if(!kept.has(key))slot.remove();viewerSlots=kept;
  viewerTrack.style.transition='none';viewerTrack.style.transform='translate3d(0,0,0)';$("v").style.background='';resetViewerZoom();for(const slot of viewerSlots.values()){const f=slot.querySelector('.media-frame');if(f){fitViewerFrame(f);f.style.transition='none';f.style.transform='none'}}applyViewerZoom();
  $("vprev").disabled=!prev;$("vnext").disabled=!next;
  const keepIDs=new Set([...kept.keys()].map(k=>k.slice(0,k.lastIndexOf(':'))));
  for(const [key,p]of mediaCache)if(!kept.has(key)){mediaCache.delete(key);p.then(m=>{releaseMedia(m)},()=>{})}
- for(const [id,p]of pdfCache)if(!keepIDs.has(id)){pdfCache.delete(id);p.then(d=>d.destroy(),()=>{})}
+ for(const [id,p]of pdfCache)if(id!==vlist[vidx]){pdfCache.delete(id);p.then(d=>d.destroy(),()=>{})}
  return current;
 }
 function dForKey(key){return docs.find(d=>d.id===key.slice(0,key.lastIndexOf(':')))}
@@ -1394,7 +1427,7 @@ addEventListener("unhandledrejection",e=>{console.warn(e.reason)});
   showLock();
   setTimeout(()=>$("splash").classList.add("out"),sessionStorage.getItem("awraqi_s")?100:1100);try{sessionStorage.setItem("awraqi_s","1")}catch(e){}
   if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-  setTimeout(genThumbs,1500);setTimeout(genMediaThumbs,1800);
+  
 })();
 </script>
 </body>
