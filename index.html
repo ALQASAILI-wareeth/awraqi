@@ -213,6 +213,17 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 #vdownload{font-size:25px}#v.media-mode #vh{background:linear-gradient(#10294bed,#10294b70,transparent)}#v.media-mode #vh button{background:#234a7780;color:#f5dfac;border-color:#cfdef133}
 @media(prefers-color-scheme:dark){html{color-scheme:dark}}
 
+
+/* Saturated navy with readable file previews. */
+:root[data-theme=dark]{--bg:#10294c;--bg2:#163960;--card:#204878;--card2:#2a5689;--tx:#f8fbff;--mut:#ccdef2;--gold:#e6c782;--ac:#ffe2a2;--bd:rgba(173,207,244,.32);--royal-raised:#2d5b91;--royal-base:#15345c;--pattern:repeating-linear-gradient(45deg,rgba(237,207,143,.04) 0 1px,transparent 1px 22px),repeating-linear-gradient(-45deg,rgba(237,207,143,.04) 0 1px,transparent 1px 22px),linear-gradient(135deg,#183c64,#265783)}
+.file-menu-row{padding:10px 8px;min-height:116px;gap:9px}
+.file-menu-open .th{width:92px;height:94px;border-radius:12px;background:#102b4c;border:1px solid #6f94bc}
+.file-menu-open .th img{width:100%;height:100%;object-fit:contain}
+.file-menu-open b{font-size:16px;white-space:normal;overflow-wrap:anywhere;line-height:1.6}
+.file-menu-open small{font-size:12px;margin-top:7px;line-height:1.5}
+.document-thumb .th{width:78px;height:86px}
+.file-menu-row.selected{box-shadow:inset -3px 0 #f0cd83}
+
 </style>
 </head>
 <body>
@@ -226,7 +237,7 @@ body:has(#sheet.on) .toast:not(.err){display:none}
     <div id="alerts"></div>
     <div class="pills"><button class="pill" id="pAll"></button><button class="pill" id="pScan"></button><button class="pill" id="pZip"></button></div>
     <div id="onb"></div>
-    <section id="recent" style="display:none"><div class="orn gt">◆ آخر المستندات ◆</div><div class="rl" id="rlist"></div></section>
+
     <div class="orn gt" id="ocat">◆ الأقسام ◆</div>
     <div class="grid" id="grid"></div><div id="res" style="display:none"></div>
   </div>
@@ -260,7 +271,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5.3";
+const VERSION="4.5.2";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -333,7 +344,7 @@ let db=null,docs=[],cur=null,curDoc=null,clip=null,busy=false,selMode=false,sel=
 const live=()=>docs.filter(d=>!d.del);
 const trash=()=>docs.filter(d=>d.del);
 const attn=()=>live().filter(d=>d.exp&&dleft(d.exp)<=SOON).sort((a,b)=>dleft(a.exp)-dleft(b.exp));
-const catRows=()=>cur===ALL?live():live().filter(d=>d.cat===cur&&!isAppleSidecar(d));
+const catRows=()=>cur===ALL?live():live().filter(d=>d.cat===cur);
 
 /* ---------- theme (auto / day / night) ---------- */
 function applyTheme(){const t=ls.get("awraqi_theme")||"auto";if(t==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=t;
@@ -677,6 +688,7 @@ function docRow(d,full){
   return`<div class="doc${on?" on":""}" data-id="${d.id}">${selMode?`<div class="ck">${on?ico("check",16):""}</div>`:""}<button class="document-thumb nolp" data-o="${d.id}" aria-label="فتح ${esc(d.title)}">${thumbH(d)}</button><button class="t nolp" data-o="${d.id}"><b>${esc(d.title)}</b><span>${full?esc(d.cat)+" · ":""}${fmt(d.ts)}</span>${expBadge(d)}${verBadge(d)}</button>${selMode?"":`<button class="mo" data-m="${d.id}" aria-label="خيارات">${ico("more",22)}</button>`}</div>`;
 }
 function wire(root,list){
+ observeFileThumbs(root);
   root.querySelectorAll("[data-o]").forEach(b=>{if(selMode)b.onclick=()=>toggleSel(b.dataset.o);else lp(b,()=>fileMenu(b,list(),b.dataset.o),()=>view(b.dataset.o,list()))});
   root.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>actSheet(b.dataset.m));
   if(selMode)root.querySelectorAll(".ck").forEach(c=>c.onclick=()=>toggleSel(c.parentNode.dataset.id));
@@ -691,8 +703,6 @@ function renderHome(){
   $("pAll").innerHTML=ico("grid",18)+" كل المستندات ("+LV.length+")";$("pScan").innerHTML=ico("layers",18)+" مسح عدة صفحات";$("pZip").innerHTML=ico("folder",18)+" استيراد ملف مضغوط";
   $("onb").innerHTML=LV.length?"":`<div class="onb"><div class="oi">${ico("plus",32)}</div><h3>ابدأ بأول مستند</h3><p>اضغط الزر الذهبي ＋ في الأسفل، وصوّر مستنداً أو اختر ملفاً من جوالك.</p><button class="btn" id="onbadd">إضافة مستند</button></div>`;
   if(!LV.length)$("onbadd").onclick=()=>$("ifile").click();
-  $("recent").style.display=LV.length&&!q?"block":"none";
-  $("rlist").innerHTML=LV.slice(0,6).map(d=>`<button class="rc nolp" data-o="${d.id}">${thumbH(d)}<b>${esc(d.title)}</b><span>${esc(d.cat)}</span></button>`).join("");
   $("grid").innerHTML=CATS.map(([n,ic],i)=>`<button class="cat nolp" style="--i:${i}" data-c="${n}"><span class="bd">${LV.filter(d=>d.cat===n).length}</span><div class="e">${ico(ic,28)}</div><b>${n}</b><span class="sub">مستند</span></button>`).join("");
   $("grid").style.display=q?"none":"grid";$("ocat").style.display=q?"none":"flex";$("res").style.display=q?"block":"none";
   if(q){const rows=searchRows();$("res").innerHTML=rows.length?`<div class="orn gt">◆ النتائج (${rows.length}) ◆</div>`+rows.map(d=>docRow(d,1)).join(""):`<div class="empty">${ico("search")}لا توجد نتائج لـ «${esc(q)}»<br>جرّب كلمة أقصر أو اسماً مختلفاً.</div>`}
@@ -1074,8 +1084,29 @@ document.addEventListener("paste",e=>{if(sheetOn()||!cur)return;const fs=pastedF
 function closeMenu(){const m=$("pm");if(m)m.remove();document.removeEventListener("pointerdown",outside,true)}
 function outside(e){const m=$("pm");if(m&&!m.contains(e.target))closeMenu()}
 
+// Decode only visible thumbnails, one at a time; never scan the library at startup.
+const thumbQueue=[];let thumbRunning=false;const thumbAttempts=new Set();
+function observeFileThumbs(root){
+ const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){observer.unobserve(entry.target);thumbQueue.push(entry.target);drainFileThumbs()}},{rootMargin:'80px'});
+ root.querySelectorAll('[data-o]').forEach(el=>observer.observe(el));
+ setTimeout(()=>observer.disconnect(),60000);
+}
+async function drainFileThumbs(){
+ if(thumbRunning)return;thumbRunning=true;
+ try{while(thumbQueue.length){const el=thumbQueue.shift();if(!el.isConnected)continue;const d=docs.find(d=>d.id===el.dataset.o);if(!d||isAppleSidecar(d)||d.previewThumb||thumbAttempts.has(d.id)||!['img','pdf','video'].includes(d.type))continue;
+ // Large originals stay available without starting expensive background decoding.
+ if(d.size>(d.type==='video'?32:12)*1048576)continue;
+ thumbAttempts.add(d.id);
+ try{const blob=await getBlob(d.id);if(!el.isConnected)continue;let thumb;
+ if(d.type==='video')thumb=await videoThumbnail(blob);else{const c=await pageCanvas(blob,d.type==='pdf',360);thumb=c.toDataURL('image/jpeg',.8);c.width=c.height=1;}
+ if(!thumb)continue;d.thumb=thumb;d.previewThumb=true;await put(d);
+ document.querySelectorAll('[data-o]').forEach(node=>{if(node.dataset.o!==d.id)return;const th=node.querySelector('.th');if(th){th.innerHTML='';const im=new Image();im.src=thumb;im.alt=d.title;th.appendChild(im)}});
+ }catch(e){}
+ }}finally{thumbRunning=false}
+}
 function fileListHTML(title,rows,selected){return `<div class="file-menu-heading"><b>${esc(title)}</b><span>${rows.length} مستند</span></div><div class="file-menu-list">${rows.length?rows.map(d=>`<div class="file-menu-row${d.id===selected?' selected':''}"><button class="file-menu-open" data-o="${esc(d.id)}">${thumbH(d)}<span><b>${esc(d.title)}</b><small>${docFormat(d)} · ${esc(d.cat)}</small></span></button><button class="mo" data-actions="${esc(d.id)}" aria-label="خيارات ${esc(d.title)}">${ico('more',20)}</button></div>`).join(''):'<div class="empty">لا توجد مستندات في هذا القسم بعد.</div>'}</div>`}
 function wireFileList(root,rows,beforeOpen){
+ observeFileThumbs(root);
  root.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{beforeOpen();view(b.dataset.o,rows)});
  root.querySelectorAll('[data-actions]').forEach(b=>b.onclick=()=>{beforeOpen();if(viewerOpen)closeViewer();actSheet(b.dataset.actions)});
 }
@@ -1126,7 +1157,6 @@ async function mediaFor(a){
   const active=a.id===vlist[vidx]&&a.page===vpage;
   if(!active){const im=new Image();im.alt=d.title;await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=d.thumb||originalCard(d,'',320).toDataURL('image/jpeg',.7)});return{node:im,width:im.naturalWidth,height:im.naturalHeight,low:true}}
   if(isAppleSidecar(d))return otherMedia(d,null);
-  if(d.name){const kind=fileKind({name:d.name,type:d.mime});if(['img','video','audio'].includes(kind))d.type=kind;}
   if(d.type==='video'||d.type==='audio')return playableMedia(d,await getBlob(d.id));
   if(d.type!=='img'&&d.type!=='pdf'&&!excelDoc(d))return otherMedia(d,await getBlob(d.id));
   if(excelDoc(d)){const m=await workbookFor(d),c=excelCanvas(m.sheets[a.page]);return{node:c,width:c.width,height:c.height}}
@@ -1152,7 +1182,7 @@ async function mountViewer(){
  // Reuse the already-visible neighboring node at the exact end of a swipe.
  for(const [pos,a]of positions){if(!a)continue;const key=pageKey(a),slot=viewerSlots.get(key)||document.createElement('div');slot.className='media-slot';slot.dataset.key=key;slot.style.left=(pos*100)+'%';slot.setAttribute('aria-hidden',pos===0?'false':'true');slot.dataset.position=pos;kept.set(key,slot);if(!slot.parentNode)viewerTrack.appendChild(slot);
   if(pos===0&&slot.dataset.low==='1'){slot.dataset.ready='';mediaCache.delete(key)}
-  if(!slot.dataset.ready){if(!slot.querySelector('.media-frame'))slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';slot.dataset.low=m.low?'1':'0';if(Number(slot.dataset.position)===0){applyViewerZoom();const video=frame.querySelector('video');if(video)video.play().catch(()=>{})}}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
+  if(!slot.dataset.ready){if(!slot.querySelector('.media-frame'))slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';slot.dataset.low=m.low?'1':'0';if(Number(slot.dataset.position)===0)applyViewerZoom()}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
  }
  for(const [key,slot]of viewerSlots)if(!kept.has(key))slot.remove();viewerSlots=kept;
  viewerTrack.style.transition='none';viewerTrack.style.transform='translate3d(0,0,0)';$("v").style.background='';resetViewerZoom();for(const slot of viewerSlots.values()){const f=slot.querySelector('.media-frame');if(f){fitViewerFrame(f);f.style.transition='none';f.style.transform='none'}}applyViewerZoom();
@@ -1163,17 +1193,9 @@ async function mountViewer(){
  return current;
 }
 function dForKey(key){return docs.find(d=>d.id===key.slice(0,key.lastIndexOf(':')))}
-function originalForSidecar(d){
- if(!isAppleSidecar(d))return d;
- const clean=n=>(n||'').replace(/\\/g,'/').replace(/^__MACOSX\//,'').replace(/(^|\/)\._/g,'$1');
- const target=clean(d.originalPath||d.name),matches=live().filter(x=>!isAppleSidecar(x)&&clean(x.originalPath||x.name)===target);
- if(matches.length===1)return matches[0];
- const base=(d.name||'').split(/[\\/]/).pop().slice(2),fallback=live().filter(x=>!isAppleSidecar(x)&&x.name===base);
- return fallback.length===1?fallback[0]:d;
-}
 async function view(id,list){
- let d=docs.find(x=>x.id===id);if(!d)return;d=originalForSidecar(d);id=d.id;closeMenu();hideSheet();viewerListReturn=false;
- if(!viewerOpen){viewerFocus=document.activeElement;const arr=(list&&list.length?list:live()).filter(x=>!x.del&&(!isAppleSidecar(x)||x.id===id)).map(x=>x.id);vlist=arr.includes(id)?arr:[id,...arr];viewerOpen=true;$("v").style.display='block';$("v").classList.add('media-mode');document.body.style.overflow='hidden';push('viewer');$("v").focus({preventScroll:true});}
+ const d=docs.find(x=>x.id===id);if(!d)return;closeMenu();viewerListReturn=false;
+ if(!viewerOpen){viewerFocus=document.activeElement;const arr=(list&&list.length?list:live()).filter(x=>!x.del).map(x=>x.id);vlist=arr.includes(id)?arr:[id,...arr];viewerOpen=true;$("v").style.display='block';$("v").classList.add('media-mode');document.body.style.overflow='hidden';push('viewer');$("v").focus({preventScroll:true});}
  vidx=vlist.indexOf(id);if(vidx<0){vlist.unshift(id);vidx=0}vpage=0;viewerBusy=true;
  if(!viewerTrack){$("vp").innerHTML='';viewerTrack=document.createElement('div');viewerTrack.id='media-track';$("vp").appendChild(viewerTrack)}
  try{await mountViewer()}catch(e){toast('تعذّر عرض المستند',{err:1})}finally{viewerBusy=false}
