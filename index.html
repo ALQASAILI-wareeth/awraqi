@@ -235,18 +235,31 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 .cat.add-category{border:1px dashed #e9c77b99;background:linear-gradient(145deg,#1b425e,#15334c)}
 #category-name{margin-top:12px}#category-error{color:#ffc4b3;min-height:22px}
 
+
+/* Velvet navy buttons, gold details, and a quieter home layout. */
+:root{--royal-raised:#172e52;--royal-base:#081b36}
+.banner-all{display:flex;align-items:center;justify-content:center;width:100%;margin:14px 0 0;padding:11px 16px;font-size:15px;border-radius:16px;gap:9px}
+[data-theme=dark] .cat:nth-child(n),[data-theme=dark] .cat.add-category,.btn,.pill,.cg button,#bar .mid .pl,#vh button{background:linear-gradient(145deg,#203b60 0%,#142a4a 48%,#0b1d37 100%);color:#f7e4b9;border-color:#b8c4d03d;box-shadow:inset 0 1px #b6d2ee1f,0 5px 0 #06152c,0 9px 18px #04152a26}
+[data-theme=dark] .cat:nth-child(n){border:1px solid #8da8c142}.cat .e{background:#091c35b3;color:#ecd193}
+#bar .mid .pl{border:2px solid #d4b56d}#shc .act{background:#142f50;border:1px solid #65819e3d;border-radius:16px;margin:9px 0;padding:17px 14px;color:#f5eddb}#shc .act .i{color:#ebce8d}
+#home>#alerts:empty{display:none}#home .orn{margin-top:17px}
+#pull-refresh{position:fixed;z-index:45;top:var(--bh);left:50%;margin-left:-90px;width:180px;padding:11px 12px;border-radius:22px;text-align:center;background:#172f50;color:#f6dfa8;border:1px solid #cdb77a66;box-shadow:0 6px 20px #06182c55;font-size:13px;pointer-events:none}
+#search-live{margin:10px 0 18px}#search-results{max-height:52vh;overflow:auto}
+.playable-shell{background:#000;border-radius:0}.playable-shell video{background:#000}
+
 </style>
 </head>
 <body>
 <header class="ban" id="ban">
   <div class="bt"><div class="logo"><svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شعار أوراقي"><defs><linearGradient id="gold-emblem" x2=".9" y2="1"><stop stop-color="#fff1c4"/><stop offset=".5" stop-color="#d8b76f"/><stop offset="1" stop-color="#9b7535"/></linearGradient></defs><rect x="3" y="3" width="90" height="90" rx="25" fill="#0d1c39" stroke="#d8b76f" stroke-width="1.5"/><rect x="9" y="9" width="78" height="78" rx="20" fill="none" stroke="#d8b76f" stroke-opacity=".35"/><path d="M30 33h29l10 11v28H30z" fill="none" stroke="url(#gold-emblem)" stroke-width="3" stroke-linejoin="round"/><path d="M59 33v12h10M37 53h21M37 61h16" fill="none" stroke="url(#gold-emblem)" stroke-width="3" stroke-linecap="round"/><path d="M31 23l8 5 9-9 9 9 8-5-4 12H35z" fill="url(#gold-emblem)"/><path d="M25 76c-10-8-12-22-8-32M71 76c10-8 12-22 8-32" fill="none" stroke="#d8b76f" stroke-width="1.8"/><path d="M24 68l-7-1M21 59l-6-4M20 49l-4-7M72 68l7-1M75 59l6-4M76 49l4-7" stroke="#d8b76f" stroke-width="2" stroke-linecap="round"/><path d="M43 80h10" stroke="#d8b76f" stroke-width="2"/></svg></div><div class="bti"><h1 class="bh">أوراقي</h1><p class="bs">خزانتك الرسمية للوثائق والاتفاقيات</p></div><button class="chip" id="chip" aria-label="مستندات قاربت على الانتهاء"></button><button class="gear" id="gear" aria-label="الإعدادات"></button></div>
     <div class="stats"><div><b id="sN">0</b><span>مستند محفوظ</span></div><div><b id="sL">—</b><span>آخر حفظ</span></div><button class="st" id="sE"><b id="sEn">0</b><span>قاربت الانتهاء</span></button></div>
+  <button class="pill banner-all" id="pAll"></button>
 </header>
 <main class="w">
   <div id="home">
-    <div class="sbw"><div class="sb"><span id="sbi"></span><input id="q" type="search" placeholder="ابحث عن مستند أو اتفاقية…" aria-label="بحث" autocomplete="off"></div></div>
+    <input id="q" type="search" hidden aria-label="بحث">
     <div id="alerts"></div>
-    <div class="pills"><button class="pill" id="pAll"></button><button class="pill" id="pScan"></button><button class="pill" id="pZip"></button></div>
+
     <div id="onb"></div>
 
     <div class="orn gt" id="ocat">◆ الأقسام ◆</div>
@@ -282,7 +295,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5.7";
+const VERSION="4.5.8";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -333,14 +346,12 @@ async function otherMedia(d,blob){
 }
 function releaseMedia(m){try{m.node?.querySelectorAll?.('video,audio').forEach(el=>{el.pause();el.removeAttribute('src');el.load()})}catch(e){}if(m.url)URL.revokeObjectURL(m.url)}
 function pauseMedia(){document.querySelectorAll('#vp video,#vp audio').forEach(el=>el.pause())}
-function mediaControlEvent(e){if(e.target.closest('button,audio'))return true;const v=e.target.closest('video');if(!v)return false;const p=e.touches?.[0]||e.changedTouches?.[0]||e,r=v.getBoundingClientRect();return p.clientY>r.bottom-65}
+function mediaControlEvent(e){return !!e.target.closest('button,audio,video')}
 async function playableMedia(d,blob){
- const url=URL.createObjectURL(blob),shell=document.createElement('div');shell.className='playable-shell';const video=d.type==='video',el=document.createElement(video?'video':'audio');el.preload='metadata';el.controls=true;el.setAttribute('playsinline','');el.playsInline=true;el.src=url;el.setAttribute('aria-label',d.title);shell.appendChild(el);
- if(video){const play=document.createElement('button');play.className='media-play';play.setAttribute('aria-label','تشغيل الفيديو');play.textContent='▶';shell.appendChild(play);play.onclick=()=>{pauseMedia();el.play().catch(()=>toast('تعذّر تشغيل هذا الترميز. استخدم تنزيل الأصل أو المشاركة.',{err:1}))};el.addEventListener('play',()=>play.hidden=true);el.addEventListener('pause',()=>play.hidden=false)}
- else{const title=document.createElement('b');title.textContent=d.title;shell.prepend(title)}
- const note=document.createElement('p');note.className='playable-note';note.hidden=true;note.textContent='تعذّر تشغيل هذا الترميز هنا؛ يمكنك تنزيل الأصل أو مشاركته.';shell.appendChild(note);el.addEventListener('error',()=>{note.hidden=false});
- const dims=await new Promise(resolve=>{const timer=setTimeout(()=>resolve([1280,720]),2500);el.addEventListener('loadedmetadata',()=>{clearTimeout(timer);resolve(video?[el.videoWidth||1280,el.videoHeight||720]:[900,420])},{once:true});el.addEventListener('error',()=>{clearTimeout(timer);resolve([1280,720])},{once:true})});
- return{node:shell,width:dims[0],height:dims[1],url,interactive:true};
+ const url=URL.createObjectURL(blob),shell=document.createElement('div');shell.className='playable-shell';const video=d.type==='video',el=document.createElement(video?'video':'audio');el.preload='auto';el.controls=true;el.setAttribute('playsinline','');el.playsInline=true;el.setAttribute('aria-label',d.title);shell.appendChild(el);
+ if(video){el.autoplay=true;el.setAttribute('autoplay','');}else{const title=document.createElement('b');title.textContent=d.title;shell.prepend(title)}
+ const note=document.createElement('p');note.className='playable-note';note.hidden=true;note.textContent='تعذّر تشغيل الفيديو هنا. يمكنك تنزيل الأصل أو مشاركته.';shell.appendChild(note);el.addEventListener('error',()=>{note.hidden=false});el.src=url;
+ return{node:shell,width:video?1280:900,height:video?720:420,url,interactive:true};
 }
 async function videoThumbnail(blob){
  const url=URL.createObjectURL(blob),v=document.createElement('video');v.preload='auto';v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
@@ -731,7 +742,7 @@ function renderHome(){
   const ch=$("chip");ch.classList.toggle("on",at.length>0);ch.innerHTML=ico("alert",18)+`<span>${at.length} قاربت على الانتهاء</span>`;
   $("alerts").innerHTML=(LV.length&&backupDue())?`<button class="al" data-al="bk">${ico("save",22)}<span>لم تحفظ نسخة احتياطية منذ مدة. احمِ مستنداتك الآن</span>${ico("back",18)}</button>`:"";
   const bk=$("alerts").querySelector("[data-al]");if(bk)bk.onclick=exportBackup;
-  $("pAll").innerHTML=ico("grid",18)+" كل المستندات ("+LV.length+")";$("pScan").innerHTML=ico("layers",18)+" مسح عدة صفحات";$("pZip").innerHTML=ico("folder",18)+" استيراد ملف مضغوط";
+  $("pAll").innerHTML=ico("grid",18)+" كل المستندات ("+LV.length+")";
   $("onb").innerHTML=LV.length?"":`<div class="onb"><div class="oi">${ico("plus",32)}</div><h3>ابدأ بأول مستند</h3><p>اضغط الزر الذهبي ＋ في الأسفل، وصوّر مستنداً أو اختر ملفاً من جوالك.</p><button class="btn" id="onbadd">إضافة مستند</button></div>`;
   if(!LV.length)$("onbadd").onclick=()=>$("ifile").click();
   $("grid").innerHTML=CATS.map(([n,ic],i)=>`<button class="cat nolp" style="--i:${i}" data-c="${esc(n)}"><span class="bd">${LV.filter(d=>d.cat===n).length}</span><div class="e">${ico(ic,28)}</div><b>${esc(n)}</b><span class="sub">مستند</span></button>`).join("")+`<button class="cat add-category" id="new-category"><div class="e">${ico("plus",28)}</div><b>بطاقة جديدة</b><span class="sub">أضف مجلدًا باسمك</span></button>`;
@@ -899,9 +910,18 @@ async function quickSaveAll(files,cat){
  if(failed.length){lastImportReport=failed;showImportReport();toast('تم حفظ '+ids.length+' من '+files.length+' ملف؛ راجع الملفات المتبقية',{err:1,ms:6000})}else toast('تم حفظ جميع الملفات: '+ids.length,{ms:4500});
 }
 $("ifile").addEventListener("change",()=>{const fs=[...$("ifile").files];$("ifile").value="";if(fs.length)startQueue(fs)});
-lp($("ba"),()=>startScan(),()=>$("ifile").click());
+lp($("ba"),addSheet,addSheet);
+function addSheet(){
+ sheet(`<h3>إضافة</h3><button class="act" id="add-files">${ico('folder')}صور وفيديوهات وملفات</button><button class="act" id="pScan">${ico('layers')}مسح عدة صفحات</button><button class="act" id="pZip">${ico('folder')}استيراد ملف مضغوط</button><button class="act" id="add-folder">${ico('plus')}بطاقة جديدة</button><button class="btn s" id="add-cancel">إلغاء</button>`);
+ $('add-files').onclick=()=>{hideSheet();$('ifile').click()};$('pScan').onclick=()=>{hideSheet();startScan()};$('pZip').onclick=()=>{hideSheet();$('izip').click()};$('add-folder').onclick=()=>categoryEditor();$('add-cancel').onclick=hideSheet;
+}
+function openSearchSheet(){
+ sheet(`<h3>بحث في المستندات</h3><input id="search-live" type="search" placeholder="اكتب اسم الملف أو البطاقة" aria-label="بحث في الملفات" autocomplete="off"><div id="search-results"><p class="m">ابحث بالاسم للوصول إلى مستندك.</p></div>`);
+ $('search-live').oninput=()=>{const q=$('search-live').value.trim().toLowerCase(),rows=q?live().filter(d=>!isAppleSidecar(d)&&(d.title+' '+d.name+' '+d.cat).toLowerCase().includes(q)):[];$('search-results').innerHTML=q?(rows.length?rows.map(d=>docRow(d,true)).join(''):'<p class="m">لا توجد نتائج.</p>'):'<p class="m">ابحث بالاسم للوصول إلى مستندك.</p>';wire($('search-results'),()=>rows)};
+ $('search-live').focus();
+}
 function startScan(){scanPages=[];$("iscan").click()}
-$("pScan").onclick=startScan;$("pAll").onclick=()=>openCat(ALL);$("pZip").onclick=()=>$("izip").click();
+$("pAll").onclick=()=>openCat(ALL);
 $("izip").addEventListener("change",()=>{const fs=[...$("izip").files];$("izip").value="";if(fs.length)startQueue(fs)});
 $("iscan").addEventListener("change",()=>{const f=$("iscan").files[0];$("iscan").value="";if(f&&isImg(f)){scanPages.push(f);scanSheet()}else if(f)toast("الملف ليس صورة",{err:1})});
 function scanSheet(){
@@ -1189,6 +1209,7 @@ async function mediaFor(a){
   const active=a.id===vlist[vidx]&&a.page===vpage;
   if(!active){const im=new Image();im.alt=d.title;await new Promise((ok,no)=>{im.onload=ok;im.onerror=no;im.src=d.thumb||originalCard(d,'',320).toDataURL('image/jpeg',.7)});return{node:im,width:im.naturalWidth,height:im.naturalHeight,low:true}}
   if(isAppleSidecar(d))return otherMedia(d,null);
+  const actualKind=fileKind({name:d.name,type:d.mime});if(['img','video','audio'].includes(actualKind))d.type=actualKind;
   if(d.type==='video'||d.type==='audio')return playableMedia(d,await getBlob(d.id));
   if(d.type!=='img'&&d.type!=='pdf'&&!excelDoc(d))return otherMedia(d,await getBlob(d.id));
   if(excelDoc(d)){const m=await workbookFor(d),c=excelCanvas(m.sheets[a.page]);return{node:c,width:c.width,height:c.height}}
@@ -1214,7 +1235,7 @@ async function mountViewer(){
  // Reuse the already-visible neighboring node at the exact end of a swipe.
  for(const [pos,a]of positions){if(!a)continue;const key=pageKey(a),slot=viewerSlots.get(key)||document.createElement('div');slot.className='media-slot';slot.dataset.key=key;slot.style.left=(pos*100)+'%';slot.setAttribute('aria-hidden',pos===0?'false':'true');slot.dataset.position=pos;kept.set(key,slot);if(!slot.parentNode)viewerTrack.appendChild(slot);
   if(pos===0&&slot.dataset.low==='1'){slot.dataset.ready='';mediaCache.delete(key)}
-  if(!slot.dataset.ready){if(!slot.querySelector('.media-frame'))slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';slot.dataset.low=m.low?'1':'0';if(Number(slot.dataset.position)===0)applyViewerZoom()}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
+  if(!slot.dataset.ready){if(!slot.querySelector('.media-frame'))slot.innerHTML='<div class="media-loading"><span class="sp"></span><span>جارٍ التحميل…</span></div>';mediaFor(a).then(m=>{if(!viewerOpen||viewerSlots.get(key)!==slot)return;slot.innerHTML='';const frame=document.createElement('div');frame.className='media-frame'+(m.interactive?' interactive':'');frame.dataset.width=m.width;frame.dataset.height=m.height;frame.appendChild(m.node);slot.appendChild(frame);fitViewerFrame(frame);slot.dataset.ready='1';slot.dataset.low=m.low?'1':'0';if(Number(slot.dataset.position)===0){applyViewerZoom();const video=frame.querySelector('video');if(video){video.addEventListener('loadedmetadata',()=>{if(!frame.isConnected)return;frame.dataset.width=video.videoWidth||1280;frame.dataset.height=video.videoHeight||720;fitViewerFrame(frame);applyViewerZoom()},{once:true});video.play().catch(()=>{});}}}).catch(e=>{if(viewerSlots.get(key)===slot)slot.innerHTML=`<div class="media-error">${ico('image',40)}<b>تعذّرت معاينة الملف</b><p>يمكنك مشاركته لفتحه في تطبيق يدعم صيغته.</p><button class="btn s" data-media-share>مشاركة الملف</button></div>`;const button=slot.querySelector('[data-media-share]');if(button)button.onclick=()=>shareMany([dForKey(key)])})}
  }
  for(const [key,slot]of viewerSlots)if(!kept.has(key))slot.remove();viewerSlots=kept;
  viewerTrack.style.transition='none';viewerTrack.style.transform='translate3d(0,0,0)';$("v").style.background='';resetViewerZoom();for(const slot of viewerSlots.values()){const f=slot.querySelector('.media-frame');if(f){fitViewerFrame(f);f.style.transition='none';f.style.transform='none'}}applyViewerZoom();
@@ -1453,9 +1474,22 @@ function aiSheet(){
   $("ks").onclick=()=>{const v=$("ky").value.trim();if(v&&!/^sk-ant-/.test(v)){toast("المفتاح يجب أن يبدأ بـ sk-ant-",{err:1});return}v?ls.set("awraqi_key",v):ls.del("awraqi_key");hideSheet();toast(getKey()?"تم تفعيل القراءة الذكية ✓":"تم حذف المفتاح")};
   $("kd").onclick=()=>{ls.del("awraqi_key");hideSheet();toast("تم حذف المفتاح")};
 }
+let refreshBusy=false;
+async function refreshPage(){
+ if(refreshBusy||busy)return;refreshBusy=true;const indicator=$('pull-refresh');indicator.hidden=false;indicator.textContent='جارٍ التحديث…';
+ try{await load();renderAll();const response=await fetch('./index.html?refresh='+Date.now(),{cache:'no-store'});if(response.ok){const html=await response.text(),match=html.match(/const VERSION\s*=\s*"([^"]+)"/);if(match&&match[1]!==VERSION){await updateApp();return}}toast('تم تحديث الصفحة');}
+ catch(e){toast('تعذّر الاتصال؛ ملفاتك المحفوظة متاحة.',{err:1})}finally{refreshBusy=false;indicator.hidden=true;indicator.style.transform='';}
+}
+const pullIndicator=document.createElement('div');pullIndicator.id='pull-refresh';pullIndicator.hidden=true;pullIndicator.setAttribute('role','status');document.body.appendChild(pullIndicator);
+let pullStart=null,pullDistance=0;
+const canPull=()=>scrollY<=1&&!viewerOpen&&!sheetOn()&&!$('pm')&&!lockedNow&&!selMode&&!busy&&!refreshBusy;
+document.addEventListener('touchstart',e=>{pullStart=null;pullDistance=0;if(e.touches.length!==1||!canPull()||e.target.closest('input,textarea,select,video,audio'))return;pullStart={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
+document.addEventListener('touchmove',e=>{if(!pullStart||e.touches.length!==1||!canPull())return;const dx=e.touches[0].clientX-pullStart.x,dy=e.touches[0].clientY-pullStart.y;if(Math.abs(dx)>Math.abs(dy)||dy<0){pullStart=null;pullIndicator.hidden=true;return}if(dy>12){e.preventDefault();pullDistance=dy;pullIndicator.hidden=false;pullIndicator.textContent=dy>=110?'اترك للتحديث':'اسحب لأسفل للتحديث';pullIndicator.style.transform='translateY('+Math.min(60,dy*.35)+'px)'}},{passive:false});
+document.addEventListener('touchend',()=>{const trigger=pullStart&&pullDistance>=110&&canPull();pullStart=null;pullDistance=0;pullIndicator.hidden=true;if(trigger){vib();refreshPage()}},{passive:true});
+document.addEventListener('touchcancel',()=>{pullStart=null;pullDistance=0;pullIndicator.hidden=true},{passive:true});
 async function updateApp(){
   sheet(`<div class="pr"><div class="sp"></div><b>جارٍ التحديث…</b></div>`,true);
-  try{if("serviceWorker" in navigator)for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();for(const k of await caches.keys())await caches.delete(k)}catch(e){}
+  try{if("serviceWorker" in navigator)for(const r of await navigator.serviceWorker.getRegistrations())if(r.scope===new URL('./',location.href).href)await r.unregister();for(const k of await caches.keys())if(k.startsWith('awraqi-'))await caches.delete(k)}catch(e){}
   location.reload();
 }
 
@@ -1505,9 +1539,9 @@ $('excel-close').onclick=closeExcelTable;$('vtable').onclick=openExcelTable;$('e
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
-$("sbi").innerHTML=ico("search",20);$("ib1").innerHTML=ico("home");$("ib2").innerHTML=ico("plus");$("ib3").innerHTML=ico("search");$("vc").innerHTML=ico("x",22);$("vsh").innerHTML=ico("share",22);
+$("ib1").innerHTML=ico("home");$("ib2").innerHTML=ico("plus");$("ib3").innerHTML=ico("search");$("vc").innerHTML=ico("x",22);$("vsh").innerHTML=ico("share",22);
 $("bh").onclick=()=>{hideSheet();closeMenu();$("q").value="";goHome();renderHome();scrollTo({top:0,behavior:"smooth"})};
-$("bq").onclick=()=>{goHome();scrollTo({top:0,behavior:"smooth"});setTimeout(()=>$("q").focus(),250)};
+$("bq").onclick=()=>{goHome();openSearchSheet()};
 {const ro=()=>document.documentElement.style.setProperty("--bh",$("ban").offsetHeight+"px");ro();addEventListener("resize",ro);if(window.ResizeObserver)new ResizeObserver(ro).observe($("ban"))}
 addEventListener("unhandledrejection",e=>{console.warn(e.reason)});
 (async()=>{
