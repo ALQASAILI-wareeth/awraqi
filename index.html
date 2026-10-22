@@ -271,7 +271,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5.2";
+const VERSION="4.5.5";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -344,7 +344,7 @@ let db=null,docs=[],cur=null,curDoc=null,clip=null,busy=false,selMode=false,sel=
 const live=()=>docs.filter(d=>!d.del);
 const trash=()=>docs.filter(d=>d.del);
 const attn=()=>live().filter(d=>d.exp&&dleft(d.exp)<=SOON).sort((a,b)=>dleft(a.exp)-dleft(b.exp));
-const catRows=()=>cur===ALL?live():live().filter(d=>d.cat===cur);
+const catRows=()=>cur===ALL?live():live().filter(d=>d.cat===cur&&!isAppleSidecar(d));
 
 /* ---------- theme (auto / day / night) ---------- */
 function applyTheme(){const t=ls.get("awraqi_theme")||"auto";if(t==="auto")delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=t;
@@ -1193,9 +1193,17 @@ async function mountViewer(){
  return current;
 }
 function dForKey(key){return docs.find(d=>d.id===key.slice(0,key.lastIndexOf(':')))}
+function originalForSidecar(d){
+ if(!isAppleSidecar(d))return d;
+ const clean=n=>(n||'').replace(/\\/g,'/').replace(/^__MACOSX\//,'').replace(/(^|\/)\._/g,'$1');
+ const target=clean(d.originalPath||d.name),matches=live().filter(x=>!isAppleSidecar(x)&&clean(x.originalPath||x.name)===target);
+ if(matches.length===1)return matches[0];
+ const base=(d.name||'').split(/[\\/]/).pop().slice(2),fallback=live().filter(x=>!isAppleSidecar(x)&&x.name===base);
+ return fallback.length===1?fallback[0]:d;
+}
 async function view(id,list){
- const d=docs.find(x=>x.id===id);if(!d)return;closeMenu();viewerListReturn=false;
- if(!viewerOpen){viewerFocus=document.activeElement;const arr=(list&&list.length?list:live()).filter(x=>!x.del).map(x=>x.id);vlist=arr.includes(id)?arr:[id,...arr];viewerOpen=true;$("v").style.display='block';$("v").classList.add('media-mode');document.body.style.overflow='hidden';push('viewer');$("v").focus({preventScroll:true});}
+ let d=docs.find(x=>x.id===id);if(!d)return;d=originalForSidecar(d);id=d.id;closeMenu();hideSheet();viewerListReturn=false;
+ if(!viewerOpen){viewerFocus=document.activeElement;const arr=(list&&list.length?list:live()).filter(x=>!x.del&&(!isAppleSidecar(x)||x.id===id)).map(x=>x.id);vlist=arr.includes(id)?arr:[id,...arr];viewerOpen=true;$("v").style.display='block';$("v").classList.add('media-mode');document.body.style.overflow='hidden';push('viewer');$("v").focus({preventScroll:true});}
  vidx=vlist.indexOf(id);if(vidx<0){vlist.unshift(id);vidx=0}vpage=0;viewerBusy=true;
  if(!viewerTrack){$("vp").innerHTML='';viewerTrack=document.createElement('div');viewerTrack.id='media-track';$("vp").appendChild(viewerTrack)}
  try{await mountViewer()}catch(e){toast('تعذّر عرض المستند',{err:1})}finally{viewerBusy=false}
