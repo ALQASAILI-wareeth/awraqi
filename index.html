@@ -224,6 +224,17 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 .document-thumb .th{width:78px;height:86px}
 .file-menu-row.selected{box-shadow:inset -3px 0 #f0cd83}
 
+
+/* Jewel-toned cards over a saturated navy surface. */
+:root[data-theme=dark]{--bg:#0d2847;--bg2:#133958;--card:#1b446b;--card2:#25537d;--tx:#fafcff;--mut:#ccdfed;--ac:#ffe1a1;--gold:#e6bf72;--royal-raised:#285986;--royal-base:#102e4e;--pattern:repeating-linear-gradient(45deg,#e9c97c09 0 1px,transparent 1px 23px),repeating-linear-gradient(-45deg,#e9c97c09 0 1px,transparent 1px 23px),linear-gradient(130deg,#133756,#235775)}
+[data-theme=dark] .cat{background:linear-gradient(145deg,#285b87,#163d66);border:1px solid #6c9db84d;box-shadow:inset 0 1px #c3e5ff22,0 7px 20px #03152630}
+[data-theme=dark] .cat:nth-child(4n+2){background:linear-gradient(145deg,#236d72,#174c59)}
+[data-theme=dark] .cat:nth-child(4n+3){background:linear-gradient(145deg,#495b91,#303e70)}
+[data-theme=dark] .cat:nth-child(4n+4){background:linear-gradient(145deg,#496583,#2b455f)}
+.cat b{overflow-wrap:anywhere}.cat .e{color:#ffe2a5;background:#0a29414d}.cat:active,.document-thumb:active,.file-menu-open:active,.photo-open:active{filter:brightness(1.18);transition:filter .08s}
+.cat.add-category{border:1px dashed #e9c77b99;background:linear-gradient(145deg,#1b425e,#15334c)}
+#category-name{margin-top:12px}#category-error{color:#ffc4b3;min-height:22px}
+
 </style>
 </head>
 <body>
@@ -271,7 +282,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.5.5";
+const VERSION="4.5.7";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -281,7 +292,9 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const lastSavedDate=t=>{const d=new Date(t);return d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0")};
 const fmt=t=>new Date(t).toLocaleDateString("ar-AE");
-const vib=()=>{try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}};
+let lastHaptic=0;
+const vib=()=>{if(ls.get('awraqi_haptic')==='off'||Date.now()-lastHaptic<70)return;lastHaptic=Date.now();try{navigator.vibrate?.(12)}catch(e){}};
+document.addEventListener('click',e=>{if(e.target.closest('button,[data-o],[data-c]'))vib()},true);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 const getKey=()=>ls.get("awraqi_key")||"";
@@ -330,8 +343,23 @@ async function playableMedia(d,blob){
  return{node:shell,width:dims[0],height:dims[1],url,interactive:true};
 }
 async function videoThumbnail(blob){
- const u=URL.createObjectURL(blob),v=document.createElement('video');v.preload='auto';v.muted=true;v.playsInline=true;v.src=u;
- try{return await new Promise((ok,no)=>{let finished=false;const finish=(err)=>{if(finished)return;finished=true;clearTimeout(timer);if(err)return no(err);const c=document.createElement('canvas'),k=320/(v.videoWidth||320);c.width=320;c.height=Math.max(1,Math.round((v.videoHeight||180)*k));try{c.getContext('2d').drawImage(v,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.75))}catch(e){no(e)}};const timer=setTimeout(()=>finish(new Error('video')),6000);v.onloadeddata=()=>finish();v.onerror=()=>finish(new Error('codec'));v.load()})}finally{v.pause();v.removeAttribute('src');v.load();URL.revokeObjectURL(u)}
+ const url=URL.createObjectURL(blob),v=document.createElement('video');v.preload='auto';v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
+ // Safari reliably decodes a seeked frame when the muted element is attached.
+ v.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:.001;pointer-events:none;z-index:-1';document.body.appendChild(v);
+ try{return await new Promise((resolve,reject)=>{
+  let done=false,target=null,seeking=false;const timer=setTimeout(()=>finish(new Error('thumbnail-timeout')),15000);
+  function finish(error){if(done)return;done=true;clearTimeout(timer);v.onloadedmetadata=v.onloadeddata=v.onseeked=v.onerror=null;if(error){reject(error);return}
+   const c=document.createElement('canvas'),k=Math.min(1,480/v.videoWidth);c.width=Math.max(1,Math.round(v.videoWidth*k));c.height=Math.max(1,Math.round(v.videoHeight*k));
+   try{c.getContext('2d').drawImage(v,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.85))}catch(e){reject(e)}finally{c.width=c.height=1}
+  }
+  function seek(){if(done||seeking)return;seeking=true;target=Number.isFinite(v.duration)&&v.duration>0?Math.min(1,v.duration/3):.1;
+   try{v.currentTime=target}catch(e){seeking=false;if(v.readyState>=2&&v.videoWidth)finish()}
+  }
+  v.onloadedmetadata=seek;
+  v.onloadeddata=()=>{if(!seeking)seek();if(target===0&&v.videoWidth)finish()};
+  v.onseeked=()=>{if(v.readyState>=2&&v.videoWidth)finish()};
+  v.onerror=()=>finish(new Error('thumbnail-codec'));v.src=url;v.load();
+ })}finally{v.pause();v.removeAttribute('src');v.load();v.remove();URL.revokeObjectURL(url)}
 }
 let mediaThumbBusy=false;
 async function genMediaThumbs(){}
@@ -360,7 +388,10 @@ function toast(m,o={}){const t=$("toast");clearTimeout(tT);t.className="toast on
 const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 const store=(n,m)=>db.transaction(n,m||"readonly").objectStore(n);
 function openDB(){return new Promise((ok,no)=>{if(!window.indexedDB)return no(new Error("noidb"));const r=indexedDB.open("awraqi",1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"id"});if(!d.objectStoreNames.contains("files"))d.createObjectStore("files",{keyPath:"id"})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error);r.onblocked=()=>no(new Error("blocked"))})}
-async function load(){docs=(await req(store("meta").getAll())).map(d=>isAppleSidecar(d)?{...d,type:'file',thumb:originalCard(d,'',320).toDataURL('image/jpeg',.72)}:d).sort((a,b)=>b.ts-a.ts)}
+let categoryAliases=Object.create(null);
+const CATEGORY_CONFIG_ID='awraqi::category-config';
+const resolveCategory=name=>{let out=name;const seen=new Set();while(categoryAliases[out]&&!seen.has(out)){seen.add(out);out=categoryAliases[out]}return out};
+async function load(){const cfg=await req(store('files').get(CATEGORY_CONFIG_ID));if(cfg?.catalog){CATS.splice(0,CATS.length,...cfg.catalog);categoryAliases=Object.assign(Object.create(null),cfg.aliases||{})}docs=(await req(store("meta").getAll())).map(d=>isAppleSidecar(d)?{...d,type:'file',thumb:originalCard(d,'',320).toDataURL('image/jpeg',.72)}:d).sort((a,b)=>b.ts-a.ts);for(const d of docs)if(d.cat&&!CATS.some(([n])=>n===d.cat))CATS.push([d.cat,'folder']);}
 /* Compatible with v1 IndexedDB. Large originals use bounded blob parts in the same store. */
 const STORAGE_PART_SIZE=2*1048576;
 function storageWrite(meta,record,deleteKeys=[]){return new Promise((ok,no)=>{const t=db.transaction(['meta','files'],'readwrite');if(meta)t.objectStore('meta').put(meta);if(record)t.objectStore('files').put(record);for(const key of deleteKeys)t.objectStore('files').delete(key);t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error||new Error('abort'))})}
@@ -380,7 +411,7 @@ async function saveIncomingStream(meta,stream,onProgress){
 }
 async function removeForever(id){const file=await req(store('files').get(id));return new Promise((ok,no)=>{const t=db.transaction(['meta','files'],'readwrite');t.objectStore('meta').delete(id);t.objectStore('files').delete(id);for(const key of file?.parts||[])t.objectStore('files').delete(key);t.oncomplete=ok;t.onerror=t.onabort=()=>no(t.error)})}
 async function getBlob(id){const r=await req(store('files').get(id));if(!r)throw new Error('missing');if(r.blob)return r.blob;if(!r.parts)throw new Error('missing');const blobs=[];for(const key of r.parts){const part=await req(store('files').get(key));if(!part?.blob)throw new Error('missing');blobs.push(part.blob)}return new Blob(blobs,{type:r.mime||'application/octet-stream'})}
-function incomingMeta(file,o={}){const meta={id:newId(),cat:o.cat||defaultCategory(file),title:o.title||defTitle(file),type:fileKind(file),name:file.name||'',originalPath:file.archivePath||'',mime:fileMime(file),size:file.size,ts:Date.now(),exp:o.exp||'',kind:o.kind||'',ver:o.ver||'',summary:o.summary||''};meta.thumb=originalCard(meta,'',320).toDataURL('image/jpeg',.72);return meta}
+function incomingMeta(file,o={}){const meta={id:newId(),cat:resolveCategory(o.cat||defaultCategory(file)),title:o.title||defTitle(file),type:fileKind(file),name:file.name||'',originalPath:file.archivePath||'',mime:fileMime(file),size:file.size,ts:Date.now(),exp:o.exp||'',kind:o.kind||'',ver:o.ver||'',summary:o.summary||''};meta.thumb=originalCard(meta,'',320).toDataURL('image/jpeg',.72);return meta}
 
 async function verifySaved(id,hasBlob){const m=await req(store("meta").get(id));if(!m)throw new Error("verify");if(hasBlob){const n=await req(store("files").count(IDBKeyRange.only(id)));if(!n)throw new Error("verify")}}
 const errMsg=e=>{const n=e&&(e.name||"");if(n==="QuotaExceededError"||/quota/i.test(e&&e.message||""))return"مساحة الجوال ممتلئة. احذف مستندات غير مهمة أو أفرغ المحذوفات، ثم حاول مرة أخرى.";return"تعذّر الحفظ. لم يُحفظ أي شيء، حاول مرة أخرى."};
@@ -703,11 +734,12 @@ function renderHome(){
   $("pAll").innerHTML=ico("grid",18)+" كل المستندات ("+LV.length+")";$("pScan").innerHTML=ico("layers",18)+" مسح عدة صفحات";$("pZip").innerHTML=ico("folder",18)+" استيراد ملف مضغوط";
   $("onb").innerHTML=LV.length?"":`<div class="onb"><div class="oi">${ico("plus",32)}</div><h3>ابدأ بأول مستند</h3><p>اضغط الزر الذهبي ＋ في الأسفل، وصوّر مستنداً أو اختر ملفاً من جوالك.</p><button class="btn" id="onbadd">إضافة مستند</button></div>`;
   if(!LV.length)$("onbadd").onclick=()=>$("ifile").click();
-  $("grid").innerHTML=CATS.map(([n,ic],i)=>`<button class="cat nolp" style="--i:${i}" data-c="${n}"><span class="bd">${LV.filter(d=>d.cat===n).length}</span><div class="e">${ico(ic,28)}</div><b>${n}</b><span class="sub">مستند</span></button>`).join("");
+  $("grid").innerHTML=CATS.map(([n,ic],i)=>`<button class="cat nolp" style="--i:${i}" data-c="${esc(n)}"><span class="bd">${LV.filter(d=>d.cat===n).length}</span><div class="e">${ico(ic,28)}</div><b>${esc(n)}</b><span class="sub">مستند</span></button>`).join("")+`<button class="cat add-category" id="new-category"><div class="e">${ico("plus",28)}</div><b>بطاقة جديدة</b><span class="sub">أضف مجلدًا باسمك</span></button>`;
   $("grid").style.display=q?"none":"grid";$("ocat").style.display=q?"none":"flex";$("res").style.display=q?"block":"none";
   if(q){const rows=searchRows();$("res").innerHTML=rows.length?`<div class="orn gt">◆ النتائج (${rows.length}) ◆</div>`+rows.map(d=>docRow(d,1)).join(""):`<div class="empty">${ico("search")}لا توجد نتائج لـ «${esc(q)}»<br>جرّب كلمة أقصر أو اسماً مختلفاً.</div>`}
   wire($("home"),()=>q?searchRows():LV);
-  $("grid").querySelectorAll(".cat").forEach(b=>lp(b,()=>menu(b),()=>openCat(b.dataset.c)));
+  $("new-category").onclick=()=>categoryEditor();
+  $("grid").querySelectorAll(".cat[data-c]").forEach(b=>lp(b,()=>menu(b),()=>openCat(b.dataset.c)));
   clipUI();
 }
 const catTitle=()=>cur===ALL?"كل المستندات":cur;
@@ -717,8 +749,8 @@ function renderTop(){
     t.innerHTML=`<button class="pill" id="tx">${ico("x",18)} إلغاء</button><b class="tc">${sel.size} محدد</b><button class="pill" id="ta">${ico("sel",18)} ${allSel()?"إلغاء الكل":"تحديد الكل"}</button>`;
     $("tx").onclick=exitSel;$("ta").onclick=toggleAll;
   }else{
-    t.innerHTML=`<button class="pill" id="back">${ico("back",18)} رجوع</button><h2 class="gt">${esc(catTitle())}</h2><button class="pill" id="selb">${ico("sel",18)} تحديد</button>${cur===ALL?"":`<button class="pill" id="pst">${ico("clip",18)} لصق</button>`}`;
-    $("back").onclick=goHome;$("selb").onclick=enterSel;const p=$("pst");if(p)p.onclick=pasteFlow;
+    t.innerHTML=`<button class="pill" id="back">${ico("back",18)} رجوع</button><h2 class="gt">${esc(catTitle())}</h2><button class="pill" id="selb">${ico("sel",18)} تحديد</button>${cur===ALL?"":`<button class="pill" id="renamecat" aria-label="تسمية البطاقة">${ico("edit",18)}</button><button class="pill" id="pst">${ico("clip",18)} لصق</button>`}`;
+    $("back").onclick=goHome;$("selb").onclick=enterSel;const p=$("pst");if(p)p.onclick=pasteFlow;const ren=$("renamecat");if(ren)ren.onclick=()=>categoryEditor(cur);
   }
 }
 function renderList(){
@@ -762,10 +794,10 @@ function confirmSheet(title,text,okLabel,onOk){
   $("cno").onclick=hideSheet;$("cok").onclick=async()=>{$("cok").disabled=true;hideSheet();await onOk()};
 }
 function catChooser(title,sel0,onPick){
-  sheet(`<h3>${esc(title)}</h3><div class="cg">${CATS.map(([n,ic])=>`<button data-c="${n}" class="${n===sel0?"on":""}">${ico(ic,20)}${n}</button>`).join("")}</div><div class="row2"><button class="btn s" id="cno">إلغاء</button></div>`);
+  sheet(`<h3>${esc(title)}</h3><div class="cg">${CATS.map(([n,ic])=>`<button data-c="${esc(n)}" class="${n===sel0?"on":""}">${ico(ic,20)}${esc(n)}</button>`).join("")}</div><div class="row2"><button class="btn s" id="cno">إلغاء</button></div>`);
   $("cno").onclick=hideSheet;$("shc").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{hideSheet();onPick(b.dataset.c)});
 }
-const catSel=(s,id)=>`<select id="${id||"ct2"}" aria-label="القسم">${CATS.map(([n])=>`<option ${n===s?"selected":""}>${n}</option>`).join("")}</select>`;
+const catSel=(s,id)=>{s=resolveCategory(s);return `<select id="${id||"ct2"}" aria-label="القسم">${CATS.map(([n])=>`<option ${n===s?"selected":""}>${esc(n)}</option>`).join("")}</select>`};
 
 /* ---------- adding documents (ONE native picker: camera / photos / files) ---------- */
 let queue=[],qTotal=0,qDone=0,scanPages=[],curAbort=null;
@@ -1093,13 +1125,13 @@ function observeFileThumbs(root){
 }
 async function drainFileThumbs(){
  if(thumbRunning)return;thumbRunning=true;
- try{while(thumbQueue.length){const el=thumbQueue.shift();if(!el.isConnected)continue;const d=docs.find(d=>d.id===el.dataset.o);if(!d||isAppleSidecar(d)||d.previewThumb||thumbAttempts.has(d.id)||!['img','pdf','video'].includes(d.type))continue;
+ try{while(thumbQueue.length){const el=thumbQueue.shift();if(!el.isConnected)continue;const d=docs.find(d=>d.id===el.dataset.o);if(!d||isAppleSidecar(d)||(d.previewThumb&&(d.type!=='video'||d.videoThumbVersion===2))||thumbAttempts.has(d.id)||!['img','pdf','video'].includes(d.type))continue;
  // Large originals stay available without starting expensive background decoding.
- if(d.size>(d.type==='video'?32:12)*1048576)continue;
+ if(d.type!=='video'&&d.size>12*1048576)continue;
  thumbAttempts.add(d.id);
  try{const blob=await getBlob(d.id);if(!el.isConnected)continue;let thumb;
  if(d.type==='video')thumb=await videoThumbnail(blob);else{const c=await pageCanvas(blob,d.type==='pdf',360);thumb=c.toDataURL('image/jpeg',.8);c.width=c.height=1;}
- if(!thumb)continue;d.thumb=thumb;d.previewThumb=true;await put(d);
+ if(!thumb)continue;const current=await req(store('meta').get(d.id));if(!current||current.del)continue;const updated={...current,thumb,previewThumb:true,...(d.type==='video'?{videoThumbVersion:2}:{})};await put(updated);Object.assign(d,updated);
  document.querySelectorAll('[data-o]').forEach(node=>{if(node.dataset.o!==d.id)return;const th=node.querySelector('.th');if(th){th.innerHTML='';const im=new Image();im.src=thumb;im.alt=d.title;th.appendChild(im)}});
  }catch(e){}
  }}finally{thumbRunning=false}
@@ -1111,13 +1143,13 @@ function wireFileList(root,rows,beforeOpen){
  root.querySelectorAll('[data-actions]').forEach(b=>b.onclick=()=>{beforeOpen();if(viewerOpen)closeViewer();actSheet(b.dataset.actions)});
 }
 function fileMenu(anchor,rows,selected,title){
- closeMenu();const m=document.createElement('div');m.id='pm';m.setAttribute('role','dialog');m.setAttribute('aria-label',title||'قائمة المستندات');
+ rows=rows.filter(d=>!isAppleSidecar(d));closeMenu();const m=document.createElement('div');m.id='pm';m.setAttribute('role','dialog');m.setAttribute('aria-label',title||'قائمة المستندات');
  m.innerHTML=fileListHTML(title||'المستندات',rows,selected)+(clip&&anchor.dataset.c?'<button class="file-menu-paste" data-p="1">لصق هنا</button>':'');document.body.appendChild(m);
  const r=anchor.getBoundingClientRect(),width=Math.min(360,innerWidth-24),maxH=Math.min(innerHeight*.6,480);m.style.width=width+'px';m.style.maxHeight=maxH+'px';const left=Math.min(Math.max(12,r.left+r.width/2-width/2),innerWidth-width-12);let top=r.bottom+8;if(top+m.offsetHeight>innerHeight-12)top=Math.max(12,r.top-m.offsetHeight-8);m.style.left=left+'px';m.style.top=top+'px';
  wireFileList(m,rows,closeMenu);const p=m.querySelector('[data-p]');if(p)p.onclick=()=>{closeMenu();pasteInto(anchor.dataset.c)};
  setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);
 }
-function menu(b){fileMenu(b,live().filter(d=>d.cat===b.dataset.c),null,b.dataset.c)}
+function menu(b){fileMenu(b,live().filter(d=>d.cat===b.dataset.c&&!isAppleSidecar(d)),null,b.dataset.c);const action=document.createElement('button');action.className='file-menu-paste';action.textContent='تسمية البطاقة';action.onclick=()=>{closeMenu();categoryEditor(b.dataset.c)};$('pm').appendChild(action)}
 
 /* ---------- quick preview (long-press) ---------- */
 const thumbs=new Map();
@@ -1370,11 +1402,34 @@ function pinSheet(){
   }
 }
 
+/* User folders: rename metadata and catalog in one transaction; originals are untouched. */
+async function saveCategory(name,oldName=null){
+ name=String(name||'').trim().normalize('NFC');
+ if(!name||name.length>60)throw new Error('اكتب اسمًا من حرف إلى ستين حرفًا');
+ if(name===ALL)throw new Error('هذا الاسم محجوز للتطبيق');
+ if(CATS.some(([n])=>n===name&&n!==oldName))throw new Error('توجد بطاقة بهذا الاسم، اختر اسمًا آخر');
+ if(oldName&&!CATS.some(([n])=>n===oldName))throw new Error('البطاقة غير موجودة');
+ const catalog=CATS.map(([n,icon])=>[n===oldName?name:n,icon]);if(!oldName)catalog.push([name,'folder']);
+ const aliases=Object.assign(Object.create(null),categoryAliases);if(oldName&&oldName!==name)aliases[oldName]=name;
+ // Renaming back to an earlier name must not form an alias cycle.
+ delete aliases[name];for(const k of Object.keys(aliases))if(aliases[k]===oldName)aliases[k]=name;
+ const metadata=await req(store('meta').getAll());
+ await new Promise((ok,no)=>{const tx=db.transaction(['meta','files'],'readwrite');for(const d of metadata)if(oldName&&d.cat===oldName)tx.objectStore('meta').put({...d,cat:name});tx.objectStore('files').put({id:CATEGORY_CONFIG_ID,catalog,aliases});tx.oncomplete=ok;tx.onerror=tx.onabort=()=>no(tx.error||new Error('تعذّر حفظ البطاقة'))});
+ if(cur===oldName)cur=name;await load();return name;
+}
+function categoryEditor(oldName=null){
+ sheet(`<h3>${oldName?'تسمية البطاقة':'بطاقة جديدة'}</h3><label for="category-name">اسم المجلد أو البطاقة</label><input id="category-name" maxlength="60" value="${esc(oldName||'')}" placeholder="مثال: عقاراتي أو مستندات البناية" autocomplete="off"><p class="m" id="category-error" role="status"></p><div class="row2"><button class="btn" id="category-save">حفظ</button><button class="btn s" id="category-cancel">إلغاء</button></div>`);
+ $('category-cancel').onclick=hideSheet;$('category-save').onclick=async()=>{const b=$('category-save');b.disabled=true;try{await saveCategory($('category-name').value,oldName);hideSheet();renderAll();toast(oldName?'تم تحديث اسم البطاقة':'تمت إضافة البطاقة')}catch(e){$('category-error').textContent=e.message;b.disabled=false}};
+ $('category-name').onkeydown=e=>{if(e.key==='Enter')$('category-save').click()};
+}
+function categoryManager(){sheet(`<h3>المجلدات والبطاقات</h3><button class="act" id="category-add">${ico('plus')}إضافة بطاقة جديدة</button>${CATS.map(([n])=>`<button class="act" data-rename="${esc(n)}">${ico('folder')}${esc(n)}<small>تسمية</small></button>`).join('')}`);$('category-add').onclick=()=>categoryEditor();$('shc').querySelectorAll('[data-rename]').forEach(b=>b.onclick=()=>categoryEditor(b.dataset.rename))}
 /* ---------- settings ---------- */
 async function settingsSheet(){
   let use="";try{const e=await navigator.storage.estimate();use=(e.usage/1048576).toFixed(1)+" ميغابايت"}catch(e){}
   const th={auto:"تلقائي",light:"نهاري",dark:"ليلي"}[ls.get("awraqi_theme")||"auto"];
   sheet(`<h3>الإعدادات</h3>
+  <button class="act" data-s="folders">${ico("folder")}المجلدات والبطاقات</button>
+  <button class="act" data-s="haptic">${ico("gear")}الاستجابة اللمسية<small>${ls.get("awraqi_haptic")==="off"?"متوقفة":navigator.vibrate?"مفعّلة":"غير مدعومة في هذا المتصفح"}</small></button>
   <button class="act" data-s="org">${ico("spark")}فحص وترتيب كل المستندات</button>
   <button class="act" data-s="bk">${ico("save")}نسخة احتياطية (تصدير)<small>مهم</small></button>
   <button class="act" data-s="rs">${ico("restore")}استعادة من نسخة احتياطية</button>
@@ -1385,7 +1440,7 @@ async function settingsSheet(){
   <button class="act" data-s="up">${ico("refresh")}تحديث التطبيق</button>
   <p class="m" style="margin-top:12px">المساحة المستخدمة: ${use||"—"} · الإصدار ${VERSION}<br>مستنداتك محفوظة داخل هذا الجوال فقط ولا تُرفع إلى أي خادم.</p>`);
   $("shc").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=b.dataset.s;hideSheet();
-    if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
+    if(s==="folders")categoryManager();else if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet()}else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
     else if(s==="org"){openCat(ALL);enterSel();toggleAll();toast("حدّدنا كل المستندات. اضغط «ترتيب ذكي» في الأسفل",{ms:4500})}});
 }
 function themeSheet(){
