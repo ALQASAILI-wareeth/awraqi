@@ -212,6 +212,20 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 .media-frame.interactive{pointer-events:auto}.playable-shell{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;background:#10294b;border-radius:14px;overflow:hidden;direction:rtl}.playable-shell video{width:100%;height:100%;object-fit:contain}.playable-shell audio{width:94%;max-width:650px}.playable-shell>b{font-size:clamp(14px,4vw,24px);padding:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}.media-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;border:1px solid #ecd49c;border-radius:50%;background:#132e53d9;color:#ffe3a2;width:64px;height:64px;font:30px/1 sans-serif;display:grid;place-items:center;padding:0 0 0 4px}.playable-note{position:absolute;bottom:20%;margin:8px;padding:10px 13px;border-radius:12px;color:#fff0ce;background:#102b50f2;text-align:center;font-size:13px;z-index:3}
 #vdownload{font-size:25px}#v.media-mode #vh{background:linear-gradient(#10294bed,#10294b70,transparent)}#v.media-mode #vh button{background:#234a7780;color:#f5dfac;border-color:#cfdef133}
 @media(prefers-color-scheme:dark){html{color-scheme:dark}}
+
+/* 4.6.1 */
+#pm.peek{display:flex;flex-direction:column;overflow:hidden;padding:0}
+#pm.peek .file-menu-heading{flex:none}
+.peek-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0}
+.peek-tile{display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:none;color:var(--tx);min-width:0;text-align:center}
+.peek-tile .th{width:100%;height:auto;aspect-ratio:1;border-radius:12px;display:grid;place-items:center;overflow:hidden}
+.peek-tile .th img{width:100%;height:100%;object-fit:cover}
+.peek-tile span{font-size:11.5px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.peek-tile:active .th{filter:brightness(1.2)}
+.peek-actions{flex:none;display:flex;gap:6px;padding:8px 10px 10px;border-top:1px solid var(--bd)}
+.peek-actions button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:42px;border:0;border-radius:12px;background:var(--royal-raised);color:var(--tx);font-size:13.5px;font-weight:700}
+.dup-group{border:1px solid var(--bd);border-radius:14px;padding:4px 10px;margin:10px 0}.dup-group .org:last-child{border-bottom:0}
+.dup-keep{flex:none;font-size:12px;font-weight:700;color:#10264b;background:var(--gold);border-radius:8px;padding:2px 7px}
 /* 4.6.0 gestures */
 .lifted{transform:scale(1.045)!important;filter:brightness(1.12);box-shadow:0 14px 30px #0006!important;transition:transform .15s,box-shadow .15s;z-index:3;position:relative}
 .drag-source{opacity:.3;transition:opacity .12s}
@@ -344,7 +358,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.6.0";
+const VERSION="4.6.1";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-sonnet-5-5",MODEL2="claude-opus-5-5";
@@ -926,12 +940,12 @@ async function expandAll(files){
  for(const f of files){
   if(!await isZip(f)){res.push(f);continue}
   const choice=await archiveChoice(f);if(choice==='cancel')continue;if(choice==='keep'){res.push(f);continue}
-  let completed=0;
+  let completed=0,zipDups=0;
   sheet(`<h3>حفظ محتويات الأرشيف</h3><p class="m">تُحفظ الملفات تباعًا دون تجميعها في الذاكرة.</p><div class="pr"><div class="sp"></div><b id="archive-progress">جارٍ البدء…</b></div>`,true);
   try{const z=await readZip(f,{saveStream:async(info,stream)=>{const meta=incomingMeta(info,{cat:cur&&cur!==ALL?cur:defaultCategory(info)}),status=$('archive-progress');if(status)status.textContent=info.name;
-    await saveIncomingStream(meta,stream,bytes=>{const label=$('archive-progress');if(label)label.textContent=info.name+' · '+Math.min(100,Math.round(bytes/Math.max(1,info.size)*100))+'٪'});completed++;
+    await saveIncomingStream(meta,stream,bytes=>{const label=$('archive-progress');if(label)label.textContent=info.name+' · '+Math.min(100,Math.round(bytes/Math.max(1,info.size)*100))+'٪'});if(await zipDupCheck(meta)){zipDups++;return}completed++;
     const label=$('archive-progress');if(label)label.textContent='تم حفظ '+completed+' ملف';
-   }});hideSheet();if(z.details.length||!z.saved){res.push(f);lastImportReport.push(...z.details);toast('تم حفظ '+z.saved+' ملف؛ أُدرج الأرشيف الأصلي أيضاً للحفظ',{ms:5000})}else toast('تم حفظ جميع ملفات الأرشيف: '+z.saved,{ms:4500})}
+   }});hideSheet();if(z.details.length||!z.saved){res.push(f);lastImportReport.push(...z.details);toast('تم حفظ '+z.saved+' ملف؛ أُدرج الأرشيف الأصلي أيضاً للحفظ',{ms:5000})}else toast(zipDups?`تم حفظ ${completed} ملف من الأرشيف، وتخطي ${zipDups} مكرر`:'تم حفظ جميع ملفات الأرشيف: '+z.saved,{ms:5000})}
   catch(e){hideSheet();res.push(f);lastImportReport.push({name:f.name,reason:'تعذّر إكمال فك الضغط؛ '+completed+' ملف حُفظ، وأُدرج الأرشيف الأصلي كاملاً للحفظ'});toast('تم حفظ '+completed+' ملف. سيُحفظ الأرشيف الأصلي أيضاً',{ms:4500})}
   await load();renderAll();
  }
@@ -1505,6 +1519,7 @@ async function settingsSheet(){
   <button class="act" data-s="org">${ico("spark")}فحص وترتيب كل المستندات</button>
   <button class="act" data-s="bk">${ico("save")}نسخة احتياطية (تصدير)<small>مهم</small></button>
   <button class="act" data-s="rs">${ico("restore")}استعادة من نسخة احتياطية</button>
+  <button class="act" data-s="dups">${ico("copy")}الملفات المكررة<small>بحث وحذف</small></button>
   <button class="act" data-s="tr">${ico("trash")}المحذوفات<small>${trash().length}</small></button>
   <button class="act" data-s="th">${ico("sun")}المظهر<small>${th}</small></button>
   <button class="act" data-s="pin">${ico("lock")}قفل التطبيق برمز<small>${hasPin()?"مفعّل":"غير مفعّل"}</small></button>
@@ -1512,7 +1527,7 @@ async function settingsSheet(){
   <button class="act" data-s="up">${ico("refresh")}تحديث التطبيق</button>
   <p class="m" style="margin-top:12px">المساحة المستخدمة: ${use||"—"} · الإصدار ${VERSION}<br>مستنداتك محفوظة داخل هذا الجوال فقط ولا تُرفع إلى أي خادم.</p>`);
   $("shc").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=b.dataset.s;hideSheet();
-    if(s==="folders")categoryManager();else if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet()}else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
+    if(s==="folders")categoryManager();else if(s==="dups")duplicatesSheet();else if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet()}else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
     else if(s==="org"){openCat(ALL);enterSel();toggleAll();toast("حدّدنا كل المستندات. اضغط «ترتيب ذكي» في الأسفل",{ms:4500})}});
 }
 function themeSheet(){
@@ -1790,6 +1805,94 @@ function rangeMove(x,y){
 }
 function rangeEnd(){RANGE.on=false;cancelAnimationFrame(dragRAF);gestureLock=false;updSel();renderList()}
 function paintSel(){$('list').querySelectorAll('[data-id]').forEach(n=>{const on=sel.has(n.dataset.id);n.classList.toggle('on',on);const ck=n.querySelector('.ck');if(ck)ck.innerHTML=on?ico('check',16):(n.classList.contains('photo-card')?'○':'')});const tc=document.querySelector('#top .tc');if(tc)tc.textContent=sel.size+' محدد';["s1","s2","s3","s4","s5"].forEach(k=>$(k).disabled=!sel.size)}
+
+/* ===================== 4.6.1: no duplicates, thumbnail peek on section cards ===================== */
+/* Fingerprint = size + SHA-256 of the start, middle and end (up to 3 MB read), so even large videos are checked quickly. */
+const fpCache=new Map(),sessionFps=new Map();
+async function fingerprint(blob){
+ const n=blob.size,C=1048576,parts=n<=3*C?[blob]:[blob.slice(0,C),blob.slice(Math.floor(n/2)-C/2,Math.floor(n/2)+C/2),blob.slice(n-C)];
+ const bufs=await Promise.all(parts.map(p=>p.arrayBuffer())),all=new Uint8Array(bufs.reduce((a,b)=>a+b.byteLength,0));let o=0;for(const b of bufs){all.set(new Uint8Array(b),o);o+=b.byteLength}
+ return n+':'+hex(new Uint8Array(await crypto.subtle.digest('SHA-256',all)));
+}
+async function docSize(d){if(typeof d.size==='number')return d.size;try{const b=await getBlob(d.id);d.size=b.size;return b.size}catch(e){return -1}}
+async function docFp(d){
+ if(d.fp)return d.fp;if(fpCache.has(d.id))return fpCache.get(d.id);
+ const fp=await fingerprint(await getBlob(d.id));fpCache.set(d.id,fp);d.fp=fp;
+ try{const m=await req(store('meta').get(d.id));if(m&&!m.fp){m.fp=fp;await storageWrite(m)}}catch(e){}
+ return fp;
+}
+// Returns {dup,fp}; dup is the existing live document with the same content, if any.
+async function duplicateOf(blob,exceptId=null){
+ const fp=await fingerprint(blob),size=blob.size;
+ for(const d of live()){if(d.id===exceptId||isAppleSidecar(d))continue;if(await docSize(d)!==size)continue;try{if(await docFp(d)===fp)return{dup:d,fp}}catch(e){}}
+ const s=sessionFps.get(fp);if(s&&s.id!==exceptId){const d=docs.find(x=>x.id===s.id);if(!d||!d.del)return{dup:d||s,fp}}
+ return{dup:null,fp};
+}
+const dupLabel=d=>`«${d.title||d.name||'ملف'}» في «${d.cat||'أخرى'}»`;
+let dupSkipped=[];
+
+// single / reviewed adds: check before reading or analysing the file
+const _nextFile=nextFile;
+nextFile=async function(){
+ if(qDone===0&&queue.length===qTotal)dupSkipped=[];
+ while(queue.length){const f=queue[0];let chk=null;try{chk=await duplicateOf(f)}catch(e){}if(!chk||!chk.dup){if(chk)f._fp=chk.fp;break}queue.shift();dupSkipped.push(chk.dup)}
+ if(!queue.length&&dupSkipped.length){hideSheet();setTimeout(genMediaThumbs,100);const n=dupSkipped.length,first=dupSkipped[0];dupSkipped=[];
+  toast(qDone?`تم حفظ ${qDone} ${qDone>1?'مستندات':'مستند'}، وتخطي ${n} مكرر`:(n===1?`لم يُكرَّر الملف: موجود مسبقًا باسم ${dupLabel(first)}`:`تم تخطي ${n} ملفات مكررة؛ موجودة مسبقًا`),{ms:5500});return}
+ return _nextFile();
+};
+const _saveDoc=saveDoc;
+saveDoc=async function(f,o){
+ if(!f._fp){const chk=await duplicateOf(f);if(chk.dup)throw Object.assign(new Error('duplicate'),{dup:chk.dup});f._fp=chk.fp}
+ const fp=f._fp,id=await _saveDoc(f,o);
+ try{const m=await req(store('meta').get(id));if(m){m.fp=fp;await storageWrite(m)}}catch(e){}
+ sessionFps.set(fp,{id,title:o.title,cat:o.cat});return id;
+};
+quickSaveAll=async function(files,cat){
+ const ids=[],failed=[];let i=0,skipped=0;
+ for(const f of files){i++;sheet(`<h3>جارٍ الحفظ…</h3><div class="pr"><div class="sp"></div><b>${i} من ${files.length}</b></div><p class="m">يُتخطّى أي ملف موجود مسبقًا.</p>`,true);
+  try{ids.push(await saveDoc(f,{title:defTitle(f),cat,exp:'',kind:'',ver:'',summary:''}))}catch(e){if(e.dup)skipped++;else failed.push({name:f.name||'ملف بلا اسم',reason:errMsg(e)})}}
+ await load();renderAll();hideSheet();
+ if(failed.length){lastImportReport=failed;showImportReport();toast('تم حفظ '+ids.length+' من '+files.length+' ملف؛ راجع الملفات المتبقية',{err:1,ms:6000})}
+ else toast(skipped?`تم حفظ ${ids.length} ملف، وتخطي ${skipped} مكرر`:'تم حفظ جميع الملفات: '+ids.length,{ms:5000});
+};
+// ZIP entries are streamed to storage first; a duplicate is removed right after it is identified.
+async function zipDupCheck(meta){
+ try{const chk=await duplicateOf(await getBlob(meta.id),meta.id);
+  if(chk.dup){await removeForever(meta.id);return true}
+  const m=await req(store('meta').get(meta.id));if(m){m.fp=chk.fp;await storageWrite(m)}sessionFps.set(chk.fp,{id:meta.id,title:meta.title,cat:meta.cat});
+ }catch(e){}return false;
+}
+
+/* Find duplicates already in the library, keep the oldest copy, move the rest to «المحذوفات». */
+async function duplicatesSheet(){
+ sheet(`<h3>الملفات المكررة</h3><div class="pr"><div class="sp"></div><b id="dup-progress">جارٍ الفحص…</b></div><p class="m">يُقارَن محتوى الملفات نفسه، لا أسماؤها.</p>`,true);
+ const bySize=new Map();for(const d of live()){if(isAppleSidecar(d))continue;const s=await docSize(d);if(s<0)continue;if(!bySize.has(s))bySize.set(s,[]);bySize.get(s).push(d)}
+ const cand=[...bySize.values()].filter(g=>g.length>1),groups=[];let k=0;const total=cand.reduce((a,g)=>a+g.length,0);
+ for(const g of cand){const byFp=new Map();for(const d of g){k++;const pr=$('dup-progress');if(pr)pr.textContent=`${k} من ${total}`;try{const fp=await docFp(d);if(!byFp.has(fp))byFp.set(fp,[]);byFp.get(fp).push(d)}catch(e){}}for(const x of byFp.values())if(x.length>1)groups.push(x.sort((a,b)=>(a.ts||0)-(b.ts||0)))}
+ const extra=groups.flatMap(g=>g.slice(1));
+ if(!groups.length){sheet(`<h3>الملفات المكررة</h3><div class="empty">${ico('check')}لا توجد ملفات مكررة ✓</div><div class="row2"><button class="btn s" id="dup-close">إغلاق</button></div>`);$('dup-close').onclick=hideSheet;return}
+ sheet(`<h3>الملفات المكررة</h3><p class="m">وُجدت ${extra.length} نسخة زائدة. تبقى أقدم نسخة من كل ملف، وتنتقل المحددة إلى «المحذوفات» ويمكن استرجاعها خلال 30 يومًا.</p>
+ <div id="dup-list">${groups.map(g=>`<div class="dup-group">${g.map((d,i)=>`<label class="org">${i?`<input type="checkbox" data-dup="${esc(d.id)}" checked style="width:22px;height:22px;flex:none">`:`<span class="dup-keep">يُبقى</span>`}${thumbH(d)}<span class="t"><b>${esc(d.title)}</b><small>${esc(d.cat)} · ${fmt(d.ts)} · ${sizeLabel(d.size||0)}</small></span></label>`).join('')}</div>`).join('')}</div>
+ <div class="row2"><button class="btn d" id="dup-go">نقل المحدد إلى المحذوفات</button><button class="btn s" id="dup-close">إغلاق</button></div>`);
+ observeFileThumbs($('shc'));$('dup-close').onclick=hideSheet;
+ $('dup-go').onclick=async()=>{const ids=[...$('shc').querySelectorAll('[data-dup]:checked')].map(c=>c.dataset.dup);if(!ids.length){toast('لم تحدد شيئًا');return}hideSheet();await softDelete(ids)};
+}
+
+/* Long-press a section card: a grid of its files as thumbnails. */
+function catPeek(b){
+ const c=b.dataset.c,rows=live().filter(d=>d.cat===c&&!isAppleSidecar(d));closeMenu();
+ const m=document.createElement('div');m.id='pm';m.className='peek';m.setAttribute('role','dialog');m.setAttribute('aria-label',c);
+ m.innerHTML=`<div class="file-menu-heading"><b>${esc(c)}</b><span>${rows.length} مستند</span></div>${rows.length?`<div class="peek-grid">${rows.map(d=>`<button class="peek-tile nolp" data-o="${esc(d.id)}" aria-label="${esc(d.title)}">${thumbH(d)}<span>${esc(d.title)}</span></button>`).join('')}</div>`:'<div class="empty">لا توجد مستندات في هذه البطاقة بعد.</div>'}<div class="peek-actions"><button data-a="open">${ico('folder',18)} فتح</button>${clip?`<button data-a="paste">${ico('clip',18)} لصق هنا</button>`:''}<button data-a="rename">${ico('edit',18)} تسمية</button></div>`;
+ document.body.appendChild(m);
+ const width=Math.min(400,innerWidth-20),maxH=Math.min(innerHeight*.7,600),r=b.getBoundingClientRect();m.style.width=width+'px';m.style.maxHeight=maxH+'px';
+ m.style.left=Math.round((innerWidth-width)/2)+'px';let top=r.bottom+8;if(top+m.offsetHeight>innerHeight-12)top=Math.max(12,Math.min(r.top-m.offsetHeight-8,innerHeight-m.offsetHeight-12));m.style.top=Math.max(12,top)+'px';
+ observeFileThumbs(m);
+ m.querySelectorAll('[data-o]').forEach(t=>t.onclick=()=>{closeMenu();view(t.dataset.o,rows)});
+ m.querySelectorAll('[data-a]').forEach(a=>a.onclick=()=>{const k=a.dataset.a;closeMenu();if(k==='open')openCat(c);else if(k==='paste')pasteInto(c);else categoryEditor(c)});
+ const grid=m.querySelector('.peek-grid');swipeDown(m,{scroller:()=>grid,move:(dy,an)=>slide(m,dy,an),close:()=>{m.style.transition='opacity .15s';m.style.opacity='0';setTimeout(closeMenu,150)}});
+ setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);vib();
+}
+menu=catPeek;
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
