@@ -214,6 +214,19 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 @media(prefers-color-scheme:dark){html{color-scheme:dark}}
 
 
+
+/* 4.6.3 */
+#pm.ctx{padding:6px;border-radius:18px;overflow-y:auto;opacity:0;transform:scale(.96);transform-origin:top center;transition:opacity .14s,transform .14s}
+#pm.ctx.on{opacity:1;transform:none}
+#pm.ctx .ctx-head{display:flex;align-items:center;gap:10px;padding:6px 8px 10px;border-bottom:1px solid var(--bd);margin-bottom:4px}
+#pm.ctx .ctx-head .th{width:46px;height:52px;border-radius:9px;flex:none}#pm.ctx .ctx-head span{min-width:0}
+#pm.ctx .ctx-head b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#pm.ctx .ctx-head small{font-size:11.5px;color:var(--mut)}
+#pm.ctx button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 10px;border:0;border-radius:12px;background:none;color:var(--tx);font-size:15.5px;text-align:start}
+#pm.ctx button .i{color:var(--ac);font-size:20px}#pm.ctx button:active{background:rgba(var(--gr),.18)}
+#pm.ctx button.d,#pm.ctx button.d .i{color:var(--bad)}
+#pm.ctx .ctx-more{margin-inline-start:auto;transition:transform .15s;font-size:18px;color:var(--mut)}#pm.ctx button.open .ctx-more{transform:rotate(-90deg)}
+#pm.ctx .ctx-cats{margin:0 8px 4px;padding:4px;border-radius:12px;background:rgba(0,0,0,.14)}#pm.ctx .ctx-cats button{font-size:14px;padding:9px 10px}
+.dist-group{border:1px solid var(--bd);border-radius:14px;padding:6px 10px;margin:10px 0}.dist-head{display:flex;align-items:center;gap:6px;color:var(--ac);padding:4px 0}.dist-head small{color:var(--mut)}
 /* 4.6.2 */
 #ai-status{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + var(--sab));z-index:44;display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:18px;background:var(--card2);color:var(--ac);border:1px solid var(--bd);box-shadow:0 6px 18px #0005;font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none}
 #ai-status[hidden]{display:none}#ai-status .sp{width:15px;height:15px;border-width:2px}
@@ -362,7 +375,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.6.2";
+const VERSION="4.6.3";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -673,7 +686,7 @@ ${hints?`ملاحظات فحص آلي: ${hints}`:""}
 7) expiry_iso: تاريخ انتهاء المستند أو الصلاحية بصيغة YYYY-MM-DD أو فارغ. expiry_printed: كما هو مكتوب.
 8) mrz_lines: إن وُجد سطرا (أو ثلاثة أسطر) MRZ فانسخها حرفاً حرفاً بدقة تامة (44 أو 30 حرفاً للسطر).
 9) summary: جملة عربية واحدة تشرح معنى المستند ومضمونه.
-10) confidence: high | medium | low.
+10) confidence: high | medium | low.${CARD_PROMPT()}
 أعد JSON فقط دون أي نص آخر.`;
 const PROMPT2=`اقرأ الصور المرفقة (صفحات مستند واحد) قراءة مستقلة ودقيقة. لا تستنتج ولا تخمّن ولا تصحّح. انسخ حرفياً فقط:
 - subject_name: اسم صاحب المستند الأبرز (هوية/جواز: صاحبها، مخطط/سند: المالك، اتفاقية: الطرف الأول ثم الثاني) كما هو مكتوب بالضبط. إن لم يكن مقروءاً بوضوح فاتركه فارغاً.
@@ -728,7 +741,7 @@ async function analyze(f,pdf,o={}){
   const T=["passport","id","plan","agreement","deed","invoice","certificate","license","other"];
   res.type=T.includes(r1.type)?r1.type:(res.type||"other");
   if(r2&&T.includes(r2.type)&&r2.type!==res.type&&!(res.type==="other"||r2.type==="other"))res.warn.push("القراءتان اختلفتا في نوع المستند ("+(TYPE_LABEL[res.type])+" / "+(TYPE_LABEL[r2.type])+")");
-  res.label=String(r1.label||"").trim();res.summary=String(r1.summary||"").trim();
+  res.label=String(r1.label||"").trim();res.summary=String(r1.summary||"").trim();res.card=String(r1.card||"").trim();
   const idf=(r1.identifiers||[]).filter(x=>x&&x.value);res.idents=idf;
   res.other=(r1.other_names||[]).filter(x=>x&&x.name);
   const nameA=String(r1.subject_name||"").trim(),nameB=r2?String(r2.subject_name||"").trim():"";
@@ -799,7 +812,7 @@ function docRow(d,full){
 }
 function wire(root,list){
  observeFileThumbs(root);
-  root.querySelectorAll("[data-o]").forEach(b=>{const id=b.dataset.o;if(selMode)dragLp(b,{kind:'doc',id,onLong:()=>{},onTap:()=>toggleSel(id)});else dragLp(b,{kind:'doc',id,onLong:()=>fileMenu(b,list(),id),onTap:()=>view(id,list())})});
+  root.querySelectorAll("[data-o]").forEach(b=>{const id=b.dataset.o;if(selMode)dragLp(b,{kind:'doc',id,onLong:()=>{},onTap:()=>toggleSel(id)});else dragLp(b,{kind:'doc',id,onLong:()=>docMenu(b,id,list),onTap:()=>view(id,list())})});
   root.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>actSheet(b.dataset.m));
   if(selMode)root.querySelectorAll(".ck").forEach(c=>c.onclick=()=>toggleSel(c.parentNode.dataset.id));
 }
@@ -1504,7 +1517,7 @@ async function saveCategory(name,oldName=null){
  delete aliases[name];for(const k of Object.keys(aliases))if(aliases[k]===oldName)aliases[k]=name;
  const metadata=await req(store('meta').getAll());
  await new Promise((ok,no)=>{const tx=db.transaction(['meta','files'],'readwrite');for(const d of metadata)if(oldName&&d.cat===oldName)tx.objectStore('meta').put({...d,cat:name});tx.objectStore('files').put({id:CATEGORY_CONFIG_ID,catalog,aliases});tx.oncomplete=ok;tx.onerror=tx.onabort=()=>no(tx.error||new Error('تعذّر حفظ البطاقة'))});
- if(cur===oldName)cur=name;await load();return name;
+ if(oldName&&cur===oldName)cur=name;await load();return name;
 }
 function categoryEditor(oldName=null){
  sheet(`<h3>${oldName?'تسمية البطاقة':'بطاقة جديدة'}</h3><label for="category-name">اسم المجلد أو البطاقة</label><input id="category-name" maxlength="60" value="${esc(oldName||'')}" placeholder="مثال: عقاراتي أو مستندات البناية" autocomplete="off"><p class="m" id="category-error" role="status"></p><div class="row2"><button class="btn" id="category-save">حفظ</button><button class="btn s" id="category-cancel">إلغاء</button></div>`);
@@ -1519,7 +1532,7 @@ async function settingsSheet(){
   sheet(`<h3>الإعدادات</h3>
   <button class="act" data-s="folders">${ico("folder")}المجلدات والبطاقات</button>
   <button class="act" data-s="haptic">${ico("gear")}الاستجابة اللمسية<small>${ls.get("awraqi_haptic")==="off"?"متوقفة":navigator.vibrate?"مفعّلة":"غير مدعومة في هذا المتصفح"}</small></button>
-  <button class="act" data-s="org">${ico("spark")}فحص وترتيب كل المستندات</button>
+  <button class="act" data-s="dist">${ico("spark")}توزيع المستندات على بطاقاتها<small>تلقائي</small></button>
   <button class="act" data-s="bk">${ico("save")}نسخة احتياطية (تصدير)<small>مهم</small></button>
   <button class="act" data-s="rs">${ico("restore")}استعادة من نسخة احتياطية</button>
   <button class="act" data-s="dups">${ico("copy")}الملفات المكررة<small>بحث وحذف</small></button>
@@ -1530,7 +1543,7 @@ async function settingsSheet(){
   <button class="act" data-s="up">${ico("refresh")}تحديث التطبيق</button>
   <p class="m" style="margin-top:12px">المساحة المستخدمة: ${use||"—"} · الإصدار ${VERSION}<br>مستنداتك محفوظة داخل هذا الجوال فقط ولا تُرفع إلى أي خادم.</p>`);
   $("shc").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=b.dataset.s;hideSheet();
-    if(s==="folders")categoryManager();else if(s==="dups")duplicatesSheet();else if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet()}else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
+    if(s==="folders")categoryManager();else if(s==="dups")duplicatesSheet();else if(s==="dist")distributeAll();else if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet()}else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet();
     else if(s==="org"){openCat(ALL);enterSel();toggleAll();toast("حدّدنا كل المستندات. اضغط «ترتيب ذكي» في الأسفل",{ms:4500})}});
 }
 function themeSheet(){
@@ -1905,7 +1918,7 @@ async function fastAdd(files){
  const inCat=cur&&cur!==ALL?cur:null,ids=[],failed=[];let skipped=0,i=0;
  for(const f of files){i++;if(files.length>1)sheet(`<h3>جارٍ الحفظ…</h3><div class="pr"><div class="sp"></div><b>${i} من ${files.length}</b></div>`,true);
   const title=defTitle(f);
-  try{const id=await saveDoc(f,{title,cat:inCat||defaultCategory(f),exp:'',kind:'',ver:'',summary:''});ids.push(id);autoTitles.set(id,title);if(!inCat)autoCatIds.add(id)}
+  try{const id=await saveDoc(f,{title,cat:inCat||f._card||defaultCategory(f),exp:'',kind:'',ver:'',summary:''});ids.push(id);autoTitles.set(id,title);if(!inCat)autoCatIds.add(id)}
   catch(e){if(e.dup)skipped++;else failed.push({name:f.name||'ملف بلا اسم',reason:errMsg(e)})}}
  await load();renderAll();hideSheet();
  const readable=getKey()?ids.filter(id=>{const d=docs.find(x=>x.id===id);return d&&['img','pdf'].includes(d.type)&&(d.size||0)<=8*1048576}):[];
@@ -1947,6 +1960,119 @@ aiSheet=function(){
  $("ks").onclick=()=>{const v=$("ky").value.trim();if(v&&!/^sk-ant-/.test(v)){toast("المفتاح يجب أن يبدأ بـ sk-ant-",{err:1});return}v?ls.set("awraqi_key",v):ls.del("awraqi_key");hideSheet();toast(getKey()?"تم تفعيل القراءة الذكية ✓":"تم حذف المفتاح")};
  $("kd").onclick=()=>{ls.del("awraqi_key");hideSheet();toast("تم حذف المفتاح")};
 };
+
+/* ===================== 4.6.3: recognise documents and file each in its card; long-press dropdown ===================== */
+const normAr=s=>String(s||'').normalize('NFKC').replace(/[ً-ٰٟـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase();
+const pickCard=n=>{if(!n)return null;const r=resolveCategory(String(n).trim());return CATS.some(([c])=>c===r)?r:null};
+const BUILTIN_RULES=[
+ [/جواز|passport/i,'أوراق شخصية'],[/هويه|بطاقه شخصيه|emirates ?id|identity|resident|اقامه|رخصه قياده|driving licen|خلاصه قيد|شهاده ميلاد|birth cert/i,'أوراق شخصية'],
+ [/فاتوره|ايصال|invoice|receipt|\bbill\b|كهرباء|dewa|sewa|اتصالات|etisalat|\bdu\b|سداد|payment/i,'فواتير'],
+ [/عقد|اتفاقي|agreement|contract|lease|tenancy|ايجار|مذكره تفاهم|mou\b/i,'اتفاقيات'],
+ [/شهاده|certificate|رخصه|licen[cs]e|permit|تصريح|diploma|مؤهل/i,'شهادات ورخص'],
+ [/سند ملكيه|title deed|مخطط|site plan|layout|قطعه|plot|بنايه|مشروع|عرض سعر|quotation|تقرير|report|صيانه|maintenance/i,'أعمالي']
+];
+const GENERIC_WORDS=new Set(['مستندات','ملفات','اوراق','اوراقي','بطاقه','مجلد','اخري','جديد','جديده','خاص','خاصه']);
+const BUILTIN_CARDS=new Set(['الفيديوهات','الصوتيات','ملفات مكتبية','جداول Excel','اتفاقيات','أعمالي','أوراق شخصية','فواتير','شهادات ورخص','أخرى']);
+// The user's own cards win: a card whose name (or a distinctive word of it) appears in the file name or text.
+function customCard(text){const t=normAr(text);if(!t.trim())return null;
+ for(const [name] of CATS){if(BUILTIN_CARDS.has(name))continue;const n=normAr(name);if(n.length>=3&&t.includes(n))return name;
+  const words=n.split(/\s+/).map(w=>w.replace(/^ال/,'').replace(/ي$/,'')).filter(w=>w.length>=4&&!GENERIC_WORDS.has(w));if(words.some(w=>t.includes(w)))return name}
+ return null}
+function keywordCard(text){const t=normAr(text);if(!t.trim())return null;for(const [re,c] of BUILTIN_RULES)if(re.test(t)){const r=pickCard(c);if(r)return r}return null}
+const classifyText=t=>customCard(t)||keywordCard(t);
+const _finish=finish;
+finish=function(res,pageTexts){_finish(res,pageTexts);res.cat=pickCard(res.card)||pickCard(res.cat)||classifyText([res.label,res.summary,...(pageTexts||[])].join('\n'))||null};
+async function pdfText(blob,pages=2){try{const doc=await openPdf(blob);try{const out=[];for(let n=1;n<=Math.min(doc.numPages,pages);n++){try{out.push(linesOf(await (await doc.getPage(n)).getTextContent()))}catch(e){}}return out.join('\n')}finally{doc.destroy()}}catch(e){return''}}
+// Fast, offline recognition for one document (no API).
+async function localCard(d,blob){
+ const nameText=[d.title,d.name,d.kind,d.summary].join(' ');
+ const custom=customCard(nameText);if(custom)return custom;
+ if(['video','audio'].includes(d.type)||excelDoc(d)||isVideo({name:d.name,type:d.mime})||isAudio({name:d.name,type:d.mime})||/\.(docx?|docm|pptx?|odt)$/i.test(d.name||''))return pickCard(defaultCategory({name:d.name,type:d.mime}));
+ const kw=keywordCard(nameText);if(kw)return kw;
+ if(d.type==='pdf'&&(d.size||0)<=12*1048576){const t=await pdfText(blob||await getBlob(d.id));const c=classifyText(t);if(c)return c}
+ return null;
+}
+// New files from the home screen go straight to their card.
+const _fastAdd=fastAdd;
+fastAdd=async function(files){
+ if(!(cur&&cur!==ALL))for(const f of files){const d={title:defTitle(f),name:f.name,mime:f.type,type:fileKind(f),size:f.size};try{f._card=await localCard(d,f)}catch(e){}}
+ return _fastAdd(files);
+};
+// AI is told the user's card names and picks one of them.
+const CARD_PROMPT=()=>`\n11) card: اختر البطاقة الأنسب لهذا المستند من هذه القائمة فقط، واكتب اسمها حرفيًا كما هو: ${CATS.map(([n])=>n).join(' | ')}. إن لم يناسب أيٌّ منها فاكتب "أخرى".`;
+
+/* Distribute the whole library: offline recognition first, then Claude for unread images and scans (if a key is set). */
+let distStop=false;
+async function distributeAll(){
+ const list=live().filter(d=>!isAppleSidecar(d));if(!list.length){toast('لا توجد مستندات بعد');return}
+ distStop=false;const props=[];const useAI=!!getKey();let i=0,unread=0;
+ const draw=(t)=>sheet(`<h3>التعرف على المستندات</h3><div class="pr"><div class="sp"></div><b>${i} من ${list.length}</b></div><p class="m">${esc(t||'')}</p><div class="row2"><button class="btn s" id="dist-stop">إيقاف وعرض ما تم</button></div>`,true);
+ draw('');$('dist-stop').onclick=()=>{distStop=true};
+ const pending=[];
+ for(const d of list){if(distStop)break;i++;if(i%3===0||i===list.length){draw(d.title);$('dist-stop').onclick=()=>{distStop=true}}
+  let c=null;try{c=await localCard(d)}catch(e){}
+  if(!BUILTIN_CARDS.has(d.cat)&&!Object.values(categoryAliases).includes(d.cat))continue;// left alone: the user's own card
+  if(c){if(c!==d.cat)props.push({d,c,how:'محلي'})}else if(useAI&&['img','pdf'].includes(d.type)&&(d.size||0)<=8*1048576)pending.push(d);else if(!useAI&&['img','pdf'].includes(d.type))unread++;
+ }
+ for(let k=0;k<pending.length&&!distStop;k++){const d=pending[k];sheet(`<h3>القراءة الذكية</h3><div class="pr"><div class="sp"></div><b>${k+1} من ${pending.length}</b></div><p class="m">${esc(d.title)}</p><div class="row2"><button class="btn s" id="dist-stop">إيقاف وعرض ما تم</button></div>`,true);$('dist-stop').onclick=()=>{distStop=true};
+  try{const blob=await getBlob(d.id),r=await analyze(new File([blob],d.name||'file',{type:d.mime||blob.type}),d.type==='pdf');const c=pickCard(r.cat);if(c&&c!==d.cat)props.push({d,c,how:'Claude',r})}catch(e){if(e.message==='key'){toast('مفتاح القراءة الذكية غير صحيح',{err:1});break}}}
+ distReview(props,unread);
+}
+function distReview(props,unreadImgs){
+ if(!props.length){sheet(`<h3>توزيع المستندات</h3><div class="empty">${ico('check')}كل المستندات في بطاقاتها المناسبة ✓</div>${unreadImgs?`<p class="m">${unreadImgs} صورة أو مستند ممسوح لم يُتعرّف عليه. فعّل القراءة الذكية لقراءتها.</p>`:''}<div class="row2"><button class="btn s" id="dist-x">إغلاق</button></div>`);$('dist-x').onclick=hideSheet;return}
+ const groups=new Map();for(const p of props){if(!groups.has(p.c))groups.set(p.c,[]);groups.get(p.c).push(p)}
+ sheet(`<h3>توزيع المستندات</h3><p class="m">تعرّفنا على ${props.length} مستند في غير بطاقته. راجع ثم اضغط «توزيع». يمكنك التراجع بعدها.</p>${unreadImgs?`<p class="m">${unreadImgs} صورة أو مستند ممسوح لم يُتعرّف عليه لأن القراءة الذكية غير مفعّلة.</p>`:''}
+ ${[...groups].map(([c,ps])=>`<div class="dist-group"><b class="dist-head">${ico('folder',16)} ${esc(c)} <small>${ps.length}</small></b>${ps.map(p=>`<label class="org"><input type="checkbox" data-dist="${esc(p.d.id)}" data-to="${esc(c)}" checked style="width:22px;height:22px;flex:none">${thumbH(p.d)}<span class="t"><b>${esc(p.d.title)}</b><small>من «${esc(p.d.cat)}»</small></span></label>`).join('')}</div>`).join('')}
+ <div class="row2"><button class="btn" id="dist-go">توزيع</button><button class="btn s" id="dist-x">إلغاء</button></div>`);
+ observeFileThumbs($('shc'));$('dist-x').onclick=hideSheet;
+ $('dist-go').onclick=async()=>{const chosen=[...$('shc').querySelectorAll('[data-dist]:checked')].map(x=>({d:docs.find(y=>y.id===x.dataset.dist),c:x.dataset.to})).filter(x=>x.d);if(!chosen.length){toast('لم تحدد شيئًا');return}
+  const before=chosen.map(x=>[x.d.id,x.d.cat]);hideSheet();try{for(const x of chosen){x.d.cat=x.c;await put(x.d)}await load();renderAll();vib();
+   toast(`وُزّع ${chosen.length} ${chosen.length>1?'مستندات':'مستند'} على بطاقاتها`,{act:'تراجع',ms:7000,fn:async()=>{for(const [id,c] of before){const d=docs.find(y=>y.id===id);if(d){d.cat=c;await put(d)}}await load();renderAll();toast('تم التراجع')}})}catch(e){toast(errMsg(e),{err:1})}};
+}
+
+/* Long-press a file: a dropdown of actions anchored to it. */
+function docMenu(anchor,id,rows){
+ const d=docs.find(x=>x.id===id);if(!d)return;closeMenu();
+ const m=document.createElement('div');m.id='pm';m.className='ctx';m.setAttribute('role','menu');
+ const here=d.cat;
+ m.innerHTML=`<div class="ctx-head">${thumbH(d)}<span><b>${esc(d.title)}</b><small>${esc(docFormat(d))} · ${esc(d.cat)}</small></span></div>
+ <button data-c="open">${ico('book')}فتح</button><button data-c="share">${ico('share')}مشاركة</button><button data-c="copy">${ico('copy')}نسخ</button>
+ <button data-c="move">${ico('move')}نقل إلى بطاقة<span class="ctx-more">‹</span></button><div class="ctx-cats" hidden>${CATS.filter(([n])=>n!==here).map(([n,ic])=>`<button data-to="${esc(n)}">${ico(ic,18)}${esc(n)}</button>`).join('')}</div>
+ <button data-c="edit">${ico('edit')}تعديل الاسم والتاريخ</button>${getKey()&&['img','pdf'].includes(d.type)?`<button data-c="ai">${ico('spark')}قراءة ذكية</button>`:''}<button data-c="del" class="d">${ico('trash')}حذف</button>`;
+ document.body.appendChild(m);
+ const place=()=>{const r=anchor.getBoundingClientRect(),w=Math.min(290,innerWidth-24);m.style.width=w+'px';m.style.maxHeight=Math.min(innerHeight-24,560)+'px';
+  let left=r.left+r.width/2-w/2;left=Math.max(12,Math.min(left,innerWidth-w-12));let top=r.bottom+6;if(top+m.offsetHeight>innerHeight-12)top=r.top-m.offsetHeight-6;if(top<12)top=Math.max(12,(innerHeight-m.offsetHeight)/2);m.style.left=left+'px';m.style.top=top+'px'};
+ place();requestAnimationFrame(()=>m.classList.add('on'));observeFileThumbs(m);
+ const act=k=>{closeMenu();if(k==='open')view(id,rows());else if(k==='share')shareMany([d]);else if(k==='copy')copyDocs([id]);else if(k==='edit')editSheet(id);else if(k==='ai')rescan(id);else if(k==='del')softDelete([id])};
+ m.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(b.dataset.c==='move'){const c=m.querySelector('.ctx-cats');c.hidden=!c.hidden;b.classList.toggle('open',!c.hidden);place();return}act(b.dataset.c)});
+ m.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{closeMenu();moveDocsTo([id],b.dataset.to)});
+ swipeDown(m,{scroller:()=>m,move:(dy,an)=>slide(m,dy,an),close:()=>{m.style.transition='opacity .15s';m.style.opacity='0';setTimeout(closeMenu,150)}});
+ setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);
+}
+
+/* 4.6.3: paste many files reliably */
+pasteInto=async function(cat){
+ if(!clip||busy)return;busy=true;const ids=[...clip.ids];let n=0,failed=0;const big=ids.length>3;
+ try{for(let i=0;i<ids.length;i++){if(big&&(i%5===0||i===ids.length-1))sheet(`<h3>جارٍ اللصق…</h3><div class="pr"><div class="sp"></div><b>${i+1} من ${ids.length}</b></div>`,true);
+   const d=docs.find(x=>x.id===ids[i]);if(!d){failed++;continue}
+   try{const blob=await getBlob(d.id),m={...d,id:newId(),cat,ts:Date.now()+i,title:d.cat===cat?d.title+" (نسخة)":d.title};delete m.del;delete m.pos;await put(m,blob);await verifySaved(m.id,true);n++}catch(e){failed++;if(e&&e.name==='QuotaExceededError'){toast(errMsg(e),{err:1,ms:6000});break}}}
+  await load();renderAll();if(big)hideSheet();toast(`تم لصق ${n} في «${cat}» ✓`+(failed?` · تعذّر ${failed}`:''),{err:!!failed&&!n,ms:5000})}
+ finally{busy=false}
+};
+const clipTypeRank=t=>/^image\/(jpeg|png|heic|heif|webp|gif)$/.test(t)?0:t==='application/pdf'?1:/^video\//.test(t)?2:/^audio\//.test(t)?3:/^text\/plain$/.test(t)?9:/^text\/html$/.test(t)?10:5;
+pasteSystem=async function(){
+ try{const items=await navigator.clipboard.read(),fs=[];
+  for(const it of items){const t=[...it.types].filter(x=>clipTypeRank(x)<9).sort((a,b)=>clipTypeRank(a)-clipTypeRank(b))[0];if(t)fs.push(new File([await it.getType(t)],'',{type:t}))}
+  if(fs.length){startQueue(fs);return}}catch(e){}
+ sheet(`<h3>لصق من خارج التطبيق</h3><p class="m">اضغط مطولاً داخل المربع ثم اختر «لصق».</p><div class="pz" id="pz" contenteditable="true" inputmode="none" role="textbox" aria-label="منطقة اللصق">اضغط مطولاً هنا ثم «لصق»</div><p class="m">لإضافة عدد كبير من الصور أو الملفات استخدم ＋ ثم «صور وفيديوهات وملفات»، فالآيفون لا يمرّر عبر اللصق إلا عددًا قليلًا منها.</p><div class="row2"><button class="btn" id="pzpick">اختيار من الصور والملفات</button><button class="btn s" id="pzx">إغلاق</button></div>`);
+ $("pzx").onclick=hideSheet;$("pzpick").onclick=()=>{hideSheet();$('ifile').click()};
+ $("pz").addEventListener("paste",e=>{e.preventDefault();const fs=pastedFiles(e);if(fs.length){hideSheet();startQueue(fs)}else toast("الحافظة لا تحتوي ملفات. انسخ مستندًا من التطبيق (⋯ ثم نسخ) أو صورة من جوالك.",{err:1,ms:5000})});
+ $("pz").addEventListener("beforeinput",e=>e.preventDefault());setTimeout(()=>$("pz")&&$("pz").focus(),100);
+};
+pastedFiles=function(e){const cd=e.clipboardData;if(!cd)return[];const seen=new Set(),fs=[];
+ for(const f of cd.files||[]){fs.push(f)}
+ for(const it of cd.items||[])if(it.kind==='file'){const f=it.getAsFile();if(f)fs.push(f)}
+ return fs.filter(f=>{const k=f.name+'|'+f.size+'|'+f.type+'|'+f.lastModified;if(seen.has(k))return false;seen.add(k);return true}).map(f=>f.name?f:new File([f],'',{type:f.type}))};
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
