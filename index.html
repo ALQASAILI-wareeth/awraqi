@@ -216,6 +216,16 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 
 
 
+
+/* 4.7.1 dropdown */
+#pm.drop{display:flex;flex-direction:column;overflow:hidden;padding:0;border-radius:20px;opacity:0;transform:translateY(-8px) scaleY(.96);transform-origin:top center;transition:opacity .16s,transform .16s}
+#pm.drop.up{transform-origin:bottom center;transform:translateY(8px) scaleY(.96)}#pm.drop.on{opacity:1;transform:none}
+#pm.drop .file-menu-heading{flex:none}
+.drop-list{overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;padding:4px 6px}
+.drop-row,#pm .drop-row{display:flex;align-items:center;gap:11px;width:100%;padding:7px 6px;border:0;border-bottom:1px solid var(--bd);background:none;color:var(--tx);text-align:start;border-radius:10px}
+.drop-row:last-child{border-bottom:0}.drop-row:active{background:rgba(var(--gr),.18)}
+.drop-row .th{width:48px;height:48px;border-radius:10px;flex:none;display:grid;place-items:center;overflow:hidden}.drop-row .th img{width:100%;height:100%;object-fit:cover}
+.drop-row span,#pm .drop-row span{min-width:0;flex:1;display:block}.drop-row b{display:block;font-size:14.5px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drop-row small{display:block;font-size:11.5px;color:var(--mut)}
 /* 4.7.0 */
 #top{flex-wrap:nowrap!important;gap:6px;align-items:center}
 #top h2{flex:1;min-width:0;margin:0;font-size:22px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -384,7 +394,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.7.0";
+const VERSION="4.7.1";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -2172,6 +2182,24 @@ settingsSheet=async function(){
   hideSheet();
   if(s==="folders")categoryManager();else if(s==="dups")duplicatesSheet();else if(s==="dist")distributeAll();else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet()});
 };
+
+/* 4.7.1: long-press a card -> its contents as a dropdown list (small thumbnail, name, format) */
+function catPeek(b){
+ const c=b.dataset.c,rows=live().filter(d=>d.cat===c&&!isAppleSidecar(d));closeMenu();
+ const m=document.createElement('div');m.id='pm';m.className='drop';m.setAttribute('role','menu');m.setAttribute('aria-label',c);
+ m.innerHTML=`<div class="file-menu-heading"><b>${esc(c)}</b><span>${rows.length} ${rows.length===1?'مستند':'مستندات'}</span></div>${rows.length?`<div class="drop-list">${rows.map(d=>`<button class="drop-row nolp" data-o="${esc(d.id)}">${thumbH(d)}<span><b>${esc(d.title)}</b><small>${esc(docFormat(d))}${d.size?' · '+sizeLabel(d.size):''}${d.exp?' · ينتهي '+fmt(d.exp+'T00:00:00'):''}</small></span></button>`).join('')}</div>`:'<div class="empty">لا توجد مستندات في هذه البطاقة بعد.</div>'}<div class="peek-actions"><button data-a="open">${ico('folder',18)} فتح البطاقة</button>${clip?`<button data-a="paste">${ico('clip',18)} لصق هنا</button>`:''}<button data-a="rename">${ico('edit',18)} تسمية</button></div>`;
+ document.body.appendChild(m);
+ const r=b.getBoundingClientRect(),w=Math.min(360,innerWidth-20);m.style.width=w+'px';
+ let left=r.left+r.width/2-w/2;left=Math.max(10,Math.min(left,innerWidth-w-10));m.style.left=left+'px';
+ const below=innerHeight-r.bottom-120,above=r.top-16,up=below<260&&above>below,room=Math.max(200,(up?above:below));
+ m.style.maxHeight=Math.min(room,innerHeight*.72)+'px';m.style.top=(up?Math.max(10,r.top-6-Math.min(m.offsetHeight,room)):r.bottom+6)+'px';m.classList.toggle('up',up);
+ requestAnimationFrame(()=>m.classList.add('on'));observeFileThumbs(m);
+ m.querySelectorAll('[data-o]').forEach(t=>t.onclick=()=>{closeMenu();view(t.dataset.o,rows)});
+ m.querySelectorAll('[data-a]').forEach(a=>a.onclick=()=>{const k=a.dataset.a;closeMenu();if(k==='open')openCat(c);else if(k==='paste')pasteInto(c);else categoryEditor(c)});
+ const list=m.querySelector('.drop-list');swipeDown(m,{scroller:()=>list,move:(dy,an)=>slide(m,dy,an),close:()=>{m.style.transition='opacity .15s';m.style.opacity='0';setTimeout(closeMenu,150)}});
+ setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);vib();
+}
+menu=catPeek;
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
