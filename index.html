@@ -215,6 +215,15 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 
 
 
+
+/* 4.7.0 */
+#top{flex-wrap:nowrap!important;gap:6px;align-items:center}
+#top h2{flex:1;min-width:0;margin:0;font-size:22px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#top h2 small{display:block;font-size:12px;color:var(--mut);-webkit-text-fill-color:var(--mut);font-weight:400}
+.ibtn{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:14px;background:var(--royal-raised);color:var(--ac);box-shadow:0 3px 0 var(--royal-base),inset 0 1px #ffffff14;padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--royal-base)}
+.set-group{margin:6px 0 4px}.set-title{margin:14px 6px 2px;font-size:13px;font-weight:700;color:var(--gold)}
+#shc .set-group .act{margin:6px 0;padding:12px 14px;min-height:50px}
 /* 4.6.3 */
 #pm.ctx{padding:6px;border-radius:18px;overflow-y:auto;opacity:0;transform:scale(.96);transform-origin:top center;transition:opacity .14s,transform .14s}
 #pm.ctx.on{opacity:1;transform:none}
@@ -375,7 +384,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.6.3";
+const VERSION="4.7.0";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -2073,6 +2082,96 @@ pastedFiles=function(e){const cd=e.clipboardData;if(!cd)return[];const seen=new 
  for(const f of cd.files||[]){fs.push(f)}
  for(const it of cd.items||[])if(it.kind==='file'){const f=it.getAsFile();if(f)fs.push(f)}
  return fs.filter(f=>{const k=f.name+'|'+f.size+'|'+f.type+'|'+f.lastModified;if(seen.has(k))return false;seen.add(k);return true}).map(f=>f.name?f:new File([f],'',{type:f.type}))};
+
+/* ===================== 4.7.0: the app organises itself; tidier section header and settings ===================== */
+const autoOn=()=>ls.get('awraqi_auto')!=='off';
+let autoBusy=false,autoTimer=0,aiBudget=25;
+function scheduleAuto(ms=4000){clearTimeout(autoTimer);autoTimer=setTimeout(function tick(){if(!db||lockedNow||viewerOpen||sheetOn()||busy||aiRunning||DRAG.on||selMode){autoTimer=setTimeout(tick,3000);return}autoOrganize()},ms)}
+async function autoOrganize(){
+ if(autoBusy||!autoOn())return;autoBusy=true;const moves=[],trashed=[];
+ try{
+  // 1) unsorted files («أخرى») go to their card: offline recognition first, then Claude for images and scans (if a key is set)
+  const other=pickCard('أخرى')||'أخرى';
+  for(const d of live().filter(x=>!isAppleSidecar(x)&&x.cat===other&&(!x.autoL||(!x.autoA&&getKey()&&['img','pdf'].includes(x.type))))){
+   if(!autoOn()||lockedNow)break;const before={cat:d.cat,title:d.title,exp:d.exp};let c=null;
+   if(!d.autoL){try{c=await localCard(d)}catch(e){}d.autoL=1}
+   if(!c&&!d.autoA&&getKey()&&aiBudget>0&&['img','pdf'].includes(d.type)&&(d.size||0)<=8*1048576){
+    aiBudget--;aiStatus('يرتّب أوراقي مستنداتك…');
+    try{const blob=await getBlob(d.id),r=await analyze(new File([blob],d.name||'file',{type:d.mime||blob.type}),d.type==='pdf');d.autoA=1;c=pickCard(r.cat);
+     if(r.level!=='none'){if(r.title&&/^مستند\s/.test(d.title||''))d.title=r.title;if(r.exp&&!d.exp)d.exp=r.exp;if(r.summary&&!d.summary)d.summary=r.summary;d.kind=d.kind||r.label||'';d.ver=d.ver||r.level}}
+    catch(e){if(e.message==='key'||e.message==='nokey'||navigator.onLine===false)aiBudget=0}
+   }
+   if(c&&c!==d.cat){d.cat=c;moves.push([d.id,before])}
+   try{await put(d)}catch(e){}
+  }
+  aiStatus('');
+  // 2) duplicates inside the same card: keep the oldest, move the rest to «المحذوفات»
+  const groups=new Map();for(const d of live()){if(isAppleSidecar(d)||d.keepDup)continue;const s=await docSize(d);if(s<0)continue;const k=d.cat+'\u0000'+s;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(d)}
+  for(const g of groups.values()){if(g.length<2)continue;const byFp=new Map();for(const d of g){try{const fp=await docFp(d);if(!byFp.has(fp))byFp.set(fp,[]);byFp.get(fp).push(d)}catch(e){}}
+   for(const same of byFp.values()){if(same.length<2)continue;same.sort((a,b)=>(a.ts||0)-(b.ts||0));for(const d of same.slice(1)){d.del=Date.now();try{await put(d);trashed.push(d.id)}catch(e){delete d.del}}}}
+ }finally{autoBusy=false;aiStatus('')}
+ if(!moves.length&&!trashed.length)return;
+ await load();renderAll();
+ const parts=[];if(moves.length)parts.push(`نقل ${moves.length} إلى ${moves.length>1?'بطاقاتها':'بطاقته'}`);if(trashed.length)parts.push(`أزال ${trashed.length} مكرر`);
+ toast('رتّب أوراقي مستنداتك: '+parts.join(' و'),{act:'تراجع',ms:9000,fn:async()=>{
+  for(const [id,b] of moves){const d=docs.find(x=>x.id===id);if(d){Object.assign(d,b);await put(d)}}
+  for(const id of trashed){const d=docs.find(x=>x.id===id);if(d){delete d.del;d.keepDup=1;await put(d)}}
+  await load();renderAll();toast('تم التراجع')}});
+}
+scheduleAuto(3500);
+{const _fa=fastAdd;fastAdd=async function(files){await _fa(files);scheduleAuto(6000)}}
+
+/* ---- section page: one compact row of icon buttons; view controls live there too ---- */
+P.list='<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01" stroke-width="2.6"/>';
+P.size='<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/>';
+const _renderTop=renderTop;
+renderTop=function(){
+ if(selMode)return _renderTop();
+ const t=$("top"),n=catRows().length;
+ t.innerHTML=`<button class="ibtn" id="back" aria-label="رجوع">${ico("back",21)}</button><h2 class="gt">${esc(catTitle())}<small>${n} ${n===1?'مستند':'مستندات'}</small></h2>${n?`<button class="ibtn" id="viewmode" aria-label="${photoGrid?'عرض قائمة':'عرض شبكة'}">${ico(photoGrid?'list':'grid',21)}</button>${photoGrid?`<button class="ibtn" id="photo-size" aria-label="حجم المصغرات">${ico('size',21)}</button>`:''}<button class="ibtn" id="selb" aria-label="تحديد">${ico("sel",21)}</button>`:''}<button class="ibtn" id="catmore" aria-label="المزيد">${ico("more",21)}</button>`;
+ $("back").onclick=goHome;if($("selb"))$("selb").onclick=enterSel;
+ if($("viewmode"))$("viewmode").onclick=()=>{photoGrid=!photoGrid;ls.set("awraqi_photo_grid",photoGrid?"on":"off");renderList()};
+ if($("photo-size"))$("photo-size").onclick=()=>{photoCols=photoCols===3?4:photoCols===4?2:3;ls.set("awraqi_photo_cols",photoCols);renderList()};
+ $("catmore").onclick=()=>sectionMenu($("catmore"));
+};
+const _renderPhotoLibrary=renderPhotoLibrary;
+renderPhotoLibrary=function(rows){_renderPhotoLibrary(rows);const bar=$("photo-tools");if(bar)bar.remove()};
+function sectionMenu(anchor){
+ closeMenu();const real=cur&&cur!==ALL;const m=document.createElement('div');m.id='pm';m.className='ctx';m.setAttribute('role','menu');
+ m.innerHTML=`<button data-k="add">${ico('plus')}إضافة ملفات${real?' هنا':''}</button>${real&&clip?`<button data-k="paste">${ico('clip')}لصق المنسوخ هنا</button>`:''}<button data-k="ext">${ico('clip')}لصق من تطبيق آخر</button>${real?`<button data-k="rename">${ico('edit')}تسمية البطاقة</button>`:''}`;
+ document.body.appendChild(m);const r=anchor.getBoundingClientRect(),w=Math.min(250,innerWidth-24);m.style.width=w+'px';m.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';m.style.top=(r.bottom+6)+'px';requestAnimationFrame(()=>m.classList.add('on'));
+ m.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;closeMenu();if(k==='add')$('ifile').click();else if(k==='paste')pasteInto(cur);else if(k==='ext')pasteSystem();else categoryEditor(cur)});
+ setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);
+}
+
+/* ---- settings, grouped ---- */
+settingsSheet=async function(){
+ let use="";try{const e=await navigator.storage.estimate();use=(e.usage/1048576).toFixed(1)+" ميغابايت"}catch(e){}
+ const th={auto:"تلقائي",light:"نهاري",dark:"كحلي ساطع",dim:"ليلي هادئ"}[ls.get("awraqi_theme")||"auto"];
+ const row=(k,ic,label,small='')=>`<button class="act" data-s="${k}">${ico(ic)}${label}${small?`<small>${small}</small>`:''}</button>`;
+ sheet(`<h3>الإعدادات</h3>
+ <div class="set-group"><p class="set-title">التنظيم</p>
+ ${row('auto','spark','الترتيب التلقائي',autoOn()?'مفعّل':'متوقف')}
+ ${row('dist','layers','توزيع المستندات الآن')}
+ ${row('dups','copy','الملفات المكررة')}
+ ${row('folders','folder','المجلدات والبطاقات')}
+ ${row('tr','trash','المحذوفات',String(trash().length))}</div>
+ <div class="set-group"><p class="set-title">الحماية</p>
+ ${row('bk','save','نسخة احتياطية (تصدير)','مهم')}
+ ${row('rs','restore','استعادة من نسخة احتياطية')}
+ ${row('pin','lock','قفل التطبيق برمز',hasPin()?'مفعّل':'غير مفعّل')}</div>
+ <div class="set-group"><p class="set-title">التطبيق</p>
+ ${row('ai','book','القراءة الذكية',getKey()?'مفعّلة':'غير مفعّلة')}
+ ${row('th','sun','المظهر',th)}
+ ${row('haptic','gear','الاستجابة اللمسية',ls.get("awraqi_haptic")==="off"?"متوقفة":navigator.vibrate?"مفعّلة":"غير مدعومة")}
+ ${row('up','refresh','تحديث التطبيق')}</div>
+ <p class="m" style="margin-top:12px">المساحة المستخدمة: ${use||"—"} · الإصدار ${VERSION}<br>مستنداتك محفوظة داخل هذا الجوال فقط ولا تُرفع إلى أي خادم.</p>`);
+ $("shc").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{const s=b.dataset.s;
+  if(s==='auto'){ls.set('awraqi_auto',autoOn()?'off':'on');if(autoOn()){scheduleAuto(800)}settingsSheet();toast(autoOn()?'الترتيب التلقائي مفعّل':'الترتيب التلقائي متوقف');return}
+  if(s==="haptic"){ls.set("awraqi_haptic",ls.get("awraqi_haptic")==="off"?"on":"off");vib();settingsSheet();return}
+  hideSheet();
+  if(s==="folders")categoryManager();else if(s==="dups")duplicatesSheet();else if(s==="dist")distributeAll();else if(s==="bk")exportBackup();else if(s==="rs")$("irest").click();else if(s==="tr")trashSheet();else if(s==="pin")pinSheet();else if(s==="ai")aiSheet();else if(s==="up")updateApp();else if(s==="th")themeSheet()});
+};
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
