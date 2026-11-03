@@ -394,7 +394,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.7.1";
+const VERSION="4.7.2";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -1760,18 +1760,18 @@ let dragGhost=null,dragDock=null,dragRAF=0,dragLastY=0,dragLastX=0;
 function dragLp(el,{kind,id,onLong,onTap}){
  let st=null,suppress=false;
  const itemEl=()=>kind==='cat'?el:el.closest('[data-id]');
- el.addEventListener('touchstart',e=>{if(e.touches.length!==1||DRAG.on||viewerOpen){st=null;return}const t=e.touches[0];suppress=false;st={x:t.clientX,y:t.clientY,lifted:false,range:false,timer:setTimeout(()=>{if(!st)return;st.lifted=true;gestureLock=true;vib();itemEl()?.classList.add('lifted')},430)}},{passive:true});
+ el.addEventListener('touchstart',e=>{if(e.touches.length!==1||DRAG.on||viewerOpen){st=null;return}const t=e.touches[0];suppress=false;st={x:t.clientX,y:t.clientY,lifted:false,range:false,timer:setTimeout(()=>{if(!st)return;st.lifted=true;gestureLock=true;vib();itemEl()?.classList.add('lifted');if(onLong){onLong();st.menu=true}},430)}},{passive:true});
  el.addEventListener('touchmove',e=>{if(!st)return;const t=e.touches[0],dx=t.clientX-st.x,dy=t.clientY-st.y;
   if(DRAG.on){e.preventDefault();dragMove(t.clientX,t.clientY);return}
   if(st.range){e.preventDefault();rangeMove(t.clientX,t.clientY);return}
   if(!st.lifted){
    if(selMode&&kind==='doc'&&Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2){clearTimeout(st.timer);st.range=true;gestureLock=true;e.preventDefault();rangeStart(id);rangeMove(t.clientX,t.clientY);return}
    if(Math.hypot(dx,dy)>9){clearTimeout(st.timer);st=null}return}
-  e.preventDefault();if(Math.hypot(dx,dy)>6)dragStart(kind,id,itemEl(),t.clientX,t.clientY)},{passive:false});
+  e.preventDefault();if(Math.hypot(dx,dy)>12){if(st.menu){closeMenu();st.menu=false}dragStart(kind,id,itemEl(),t.clientX,t.clientY)}},{passive:false});
  const finish=(e,cancel)=>{if(!st)return;clearTimeout(st.timer);const s=st;st=null;itemEl()?.classList.remove('lifted');
   if(DRAG.on){suppress=true;e&&e.cancelable&&e.preventDefault();dragEnd(cancel);return}
   if(s.range){suppress=true;e&&e.cancelable&&e.preventDefault();rangeEnd();return}
-  gestureLock=false;if(s.lifted){suppress=true;e&&e.cancelable&&e.preventDefault();if(!cancel)onLong&&onLong()}};
+  gestureLock=false;if(s.lifted){suppress=true;e&&e.cancelable&&e.preventDefault();if(!s.menu&&!cancel)onLong&&onLong()}};
  el.addEventListener('touchend',e=>finish(e,false),{passive:false});el.addEventListener('touchcancel',e=>finish(e,true));
  el.addEventListener('contextmenu',e=>e.preventDefault());
  // mouse: hold to open the menu, as before
