@@ -217,6 +217,41 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 
 
 
+
+/* 4.8.0 real estate */
+.realty-alert{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:10px 14px;border-radius:16px;border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(var(--gr),.32),rgba(var(--gr),.14));color:var(--tx);text-align:start;font:inherit;box-shadow:0 4px 14px #0003}
+.realty-alert .ra-dot{width:12px;height:12px;border-radius:50%;background:#ff6b5a;box-shadow:0 0 0 4px #ff6b5a44;flex:none;animation:ra 1.6s infinite}
+@keyframes ra{50%{box-shadow:0 0 0 8px #ff6b5a11}}
+.realty-alert .ra-txt{flex:1;min-width:0}.realty-alert b{display:block;font-size:15px}.realty-alert small{display:block;font-size:12px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.realty-alert .i{transform:scaleX(-1);color:var(--ac)}
+.cat.realty-card{border:1.5px solid var(--gold)!important}.cat.realty-card.has-new .bd{background:#ff6b5a;color:#fff}
+.realty-add{width:100%;margin:2px 0 12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.seg{display:flex;gap:6px;padding:4px;border-radius:14px;background:rgba(0,0,0,.14);margin:0 0 10px}
+.seg button{flex:1;min-height:40px;border:0;border-radius:11px;background:none;color:var(--mut);font:inherit;font-weight:700;font-size:14px}
+.seg button.on{background:var(--royal-raised);color:var(--tx);box-shadow:0 2px 0 var(--royal-base)}.seg button b{font-size:12px;opacity:.8;margin-inline-start:4px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 10px;scrollbar-width:none}.chips button,.chips.static span{flex:none;padding:7px 12px;border-radius:20px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:13px}
+.chips button.on{background:var(--gold);color:#10264b;border-color:var(--gold)}.chips.static{flex-wrap:wrap}
+.realty-row .realty-ico{width:54px;height:54px;flex:none;border-radius:14px;border:0;background:var(--royal-raised);font-size:28px;display:grid;place-items:center}
+.realty-row .t{min-width:0}.realty-snip{display:block;font-size:12.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.realty-tags{display:flex;gap:5px;margin-top:5px}.realty-tags i{font-style:normal;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.realty-row.st-new .st{background:#ff6b5a;color:#fff}.realty-row.st-doing .st{background:var(--gold);color:#10264b}.realty-row.st-done .st{background:rgba(255,255,255,.18);color:var(--mut)}.realty-row.st-done{opacity:.6}
+.realty-tags .mt{background:#2e9e6e;color:#fff}
+#realty-pane{position:fixed;inset:0;z-index:72;overflow-y:auto;overscroll-behavior:contain;background:var(--glow) no-repeat,var(--bg);color:var(--tx);padding:calc(10px + var(--sat)) 12px calc(24px + var(--sab))}
+#realty-pane[hidden]{display:none}
+.rp-top{display:flex;align-items:center;gap:8px;position:sticky;top:calc(-10px - var(--sat));z-index:2;margin:calc(-10px - var(--sat)) -12px 0;padding:calc(12px + var(--sat)) 12px 10px;background:var(--bg)}.rp-top h2{flex:1;min-width:0;margin:0;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:12px 14px;margin:0 0 12px}
+.rp-h{margin:0 0 8px;font-weight:700;color:var(--ac);display:flex;align-items:center;justify-content:space-between}
+.rp-edit{border:0;background:none;color:var(--ac);font:inherit;font-size:13px;display:flex;align-items:center;gap:4px}
+.rp-contact{display:flex;flex-direction:column;gap:10px}.rp-contact b{font-size:17px}.rp-contact small{display:block;color:var(--mut);text-align:right}
+.rp-actions{display:flex;gap:8px}.rp-actions .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.rp-msg{white-space:pre-wrap;line-height:1.75;font-size:15px;background:rgba(0,0,0,.14);border-radius:12px;padding:10px 12px;margin-bottom:8px;user-select:text;-webkit-user-select:text}
+.rp-step{display:flex;align-items:flex-start;gap:10px;padding:8px 2px;border-bottom:1px solid var(--bd);font-size:14.5px;line-height:1.6}.rp-step:last-child{border-bottom:0}
+.rp-step input{width:22px;height:22px;flex:none;margin-top:2px}.rp-step input:checked+span{text-decoration:line-through;opacity:.6}
+.rp-reply{margin-bottom:12px}.rp-reply .btn{display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.rp-match{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd)}.rp-match:last-child{border-bottom:0}
+.rp-match button{flex:1;display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--tx);font:inherit;font-size:22px;text-align:start;min-width:0}
+.rp-match span{min-width:0}.rp-match b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rp-match small{display:block;font-size:12px;color:var(--mut)}.rp-match .btn{flex:none;padding:8px 12px;font-size:13px;text-decoration:none}
+.rp-status{margin-bottom:12px}
 /* 4.7.1 dropdown */
 #pm.drop{display:flex;flex-direction:column;overflow:hidden;padding:0;border-radius:20px;opacity:0;transform:translateY(-8px) scaleY(.96);transform-origin:top center;transition:opacity .16s,transform .16s}
 #pm.drop.up{transform-origin:bottom center;transform:translateY(8px) scaleY(.96)}#pm.drop.on{opacity:1;transform:none}
@@ -394,7 +429,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.7.2";
+const VERSION="4.8.0";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -540,7 +575,7 @@ addEventListener("popstate",()=>{
   if(sheetOn()&&!sheetLock){hideSheet();history.pushState({n:"x"},"");return}
   if(sheetOn()){history.pushState({n:"x"},"");return}
   if(selMode){exitSel();history.pushState({n:"x"},"");return}
-  const n=L.pop();if(n==="viewer"){hideViewer();return}if(n==="cat"){hideCat();return}
+  const n=L.pop();if(n==="viewer"){hideViewer();return}if(n==="realty"){closeRealty(true);return}if(n==="cat"){hideCat();return}
   const now=Date.now();if(now-lastBack<2000){history.back();return}
   lastBack=now;history.pushState({n:"root"},"");toast("اضغط رجوع مرة أخرى للخروج",{ms:1800});
 });
@@ -1994,7 +2029,7 @@ const GENERIC_WORDS=new Set(['مستندات','ملفات','اوراق','اور�
 const BUILTIN_CARDS=new Set(['الفيديوهات','الصوتيات','ملفات مكتبية','جداول Excel','اتفاقيات','أعمالي','أوراق شخصية','فواتير','شهادات ورخص','أخرى']);
 // The user's own cards win: a card whose name (or a distinctive word of it) appears in the file name or text.
 function customCard(text){const t=normAr(text);if(!t.trim())return null;
- for(const [name] of CATS){if(BUILTIN_CARDS.has(name))continue;const n=normAr(name);if(n.length>=3&&t.includes(n))return name;
+ for(const [name] of CATS){if(BUILTIN_CARDS.has(name)||name==='المهام العقارية')continue;const n=normAr(name);if(n.length>=3&&t.includes(n))return name;
   const words=n.split(/\s+/).map(w=>w.replace(/^ال/,'').replace(/ي$/,'')).filter(w=>w.length>=4&&!GENERIC_WORDS.has(w));if(words.some(w=>t.includes(w)))return name}
  return null}
 function keywordCard(text){const t=normAr(text);if(!t.trim())return null;for(const [re,c] of BUILTIN_RULES)if(re.test(t)){const r=pickCard(c);if(r)return r}return null}
@@ -2200,6 +2235,234 @@ function catPeek(b){
  setTimeout(()=>document.addEventListener('pointerdown',outside,true),30);vib();
 }
 menu=catPeek;
+
+/* ===================== 4.8.0: «المهام العقارية» — requests and offers from messages ===================== */
+const REALTY='المهام العقارية';
+P.building='<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h3a1 1 0 0 1 1 1v11"/><path d="M2 21h20M8 7h4M8 11h4M8 15h4"/>';
+P.phone='<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>';
+P.chat='<path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.4 8.4 0 1 1 21 11.5z"/>';
+const PROPS={villa:['فيلا','🏡'],apartment:['شقة','🏢'],building:['بناية','🏬'],land:['أرض','🗺️'],townhouse:['تاون هاوس','🏘️'],shop:['محل','🏪'],office:['مكتب','🗄️'],warehouse:['مستودع','🏭'],other:['عقار','🏠']};
+const DEALS={buy:'شراء',sell:'بيع',rent:'إيجار'};
+const propLabel=p=>(PROPS[p]||PROPS.other)[0],propIcon=p=>(PROPS[p]||PROPS.other)[1];
+const toLatinDigits=s=>String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+/* ---- recognition (offline) ---- */
+function parseRealty(raw){
+ const text=toLatinDigits(raw),t=normAr(text);
+ const has=re=>re.test(t);
+ let kind='';
+ const reqScore=(t.match(/مطلوب|ابغي|ابغى|ابي |ابا |اريد|احتاج|ادور|نبحث|ابحث|يبحث|يبغي|يبي |عندي زبون|عندي عميل|عميل يبي|زبون يبي|طلب|wanted|looking for|\bneed|require|client (?:is )?looking/g)||[]).length;
+ const offScore=(t.match(/للبيع|للايجار|للإيجار|متوفر|متاح|عرض|يوجد لدينا|لدينا|من المالك|المالك مباشره|بسعر|السعر|for sale|for rent|available|\boffer|asking price|price/g)||[]).length;
+ if(reqScore||offScore)kind=reqScore>=offScore?'request':'offer';
+ const P_RULES=[['villa',/فيلا|فيلل|فله|فلل|villa/],['apartment',/شقه|شقق|apartment|\bflat|استوديو|studio/],['building',/بنايه|بنايات|عماره|عمارات|building/],['land',/ارض|اراضي|قطعه ارض|قسيمه|\bplot|\bland/],['townhouse',/تاون ?هاوس|townhouse/],['shop',/محل|محلات|\bshop|retail/],['office',/مكتب|مكاتب|office/],['warehouse',/مستودع|مخزن|warehouse/]];
+ let property='',at=1e9;for(const [k,re] of P_RULES){const m=t.match(re);if(m&&m.index<at){at=m.index;property=k}}
+ let deal='';if(has(/ايجار|إيجار|للايجار|استئجار|\brent|lease/))deal='rent';else if(has(/للبيع|بيع|\bsale|\bsell/))deal=kind==='request'?'buy':'sell';else if(has(/شراء|تمليك|اشتري|نشتري|\bbuy|purchase/))deal='buy';
+ if(kind==='request'&&deal==='sell')deal='buy';if(kind==='offer'&&deal==='buy')deal='sell';
+ const phones=[...new Set((text.match(/(?:\+|00)?\d[\d\s\-]{7,16}\d/g)||[]).map(x=>x.replace(/[\s\-]/g,'')).filter(x=>x.replace(/\D/g,'').length>=9))];
+ let price=null;const pm=text.match(/(\d+(?:[.,]\d+)?)\s*(مليون|ملايين|million|m\b|الف|ألف|آلاف|الاف|k\b|thousand)?\s*(?:درهم|aed|dhs|dh)?/gi)||[];
+ for(const m of pm){const mm=m.match(/(\d+(?:[.,]\d+)?)\s*(مليون|ملايين|million|m\b|الف|ألف|آلاف|الاف|k\b|thousand)?/i);if(!mm)continue;let v=parseFloat(mm[1].replace(',','.'));const u=(mm[2]||'').toLowerCase();if(/مليون|ملايين|million|^m$/.test(u))v*=1e6;else if(/الف|ألف|آلاف|الاف|^k$|thousand/.test(u))v*=1e3;else if(!/درهم|aed|dhs|dh/i.test(m)||v<1000)continue;if(v>=10000&&(!price||v>price))price=v}
+ const rm=t.match(/(\d+)\s*(?:غرف|غرفه|غرفتين|bed|br\b|bhk|بيدروم|ماستر)/);let rooms=rm?+rm[1]:(/غرفتين/.test(t)?2:null);
+ let area='';const am=text.match(/(?:^|[\s,،])(?:في|بمنطقة|منطقة|منطقه|بمنطقه|area|in|at)\s+([؀-ۿA-Za-z][؀-ۿA-Za-z\s]{1,24}?)(?=[\s,،.\n]|$)/);
+ if(am){area=am[1].trim().split(/\s+/).slice(0,2).join(' ');if(/^(حدود|حال|وقت|اسرع|أسرع|المنطقه|المنطقة|the|a)$/i.test(area))area=''}
+ let name='';const nm=raw.match(/^\s*\[?[\d\/\-.,: ]+(?:[AP]M|ص|م)?\]?\s*[-–]?\s*([^:\n]{2,30}):/m);if(nm)name=nm[1].trim();
+ return{kind,property,deal,price,rooms,area,phone:phones[0]||'',name};
+}
+function fmtPrice(v){if(!v)return'';if(v>=1e6)return(+(v/1e6).toFixed(2))+' مليون';if(v>=1e3)return Math.round(v/1e3)+' ألف';return String(v)}
+function realtyTitle(r){const k=r.kind==='offer'?'عرض':r.kind==='request'?'طلب':'رسالة';return`${k} ${propLabel(r.property)}${r.deal?' · '+DEALS[r.deal]:''}${r.area?' · '+r.area:''}`}
+function waNumber(p){let d=String(p||'').replace(/\D/g,'');if(!d)return'';if(d.startsWith('00'))d=d.slice(2);if(/^05\d{8}$/.test(d))d='971'+d.slice(1);else if(/^5\d{8}$/.test(d))d='971'+d;return d}
+const waLink=(p,text)=>{const n=waNumber(p);return n?`https://wa.me/${n}${text?'?text='+encodeURIComponent(text):''}`:`https://wa.me/${text?'?text='+encodeURIComponent(text):''}`};
+
+/* ---- WhatsApp copy / export: split into separate messages ---- */
+function splitMessages(raw){
+ const lines=String(raw||'').replace(/\r/g,'').replace(/[‎‏]/g,'').split('\n'),head=/^\s*\[?(\d{1,4}[\/\-.]\d{1,2}[\/\-.]\d{1,4})[,،]?\s+(\d{1,2}:\d{2}(?::\d{2})?\s*(?:[APap][Mm]|ص|م)?)\]?\s*[-–]?\s*([^:]{1,40}):\s?(.*)$/;
+ const out=[];let cur=null;
+ for(const l of lines){const m=l.match(head);if(m){if(cur)out.push(cur);cur={name:m[3].trim(),text:m[4]}}else if(cur)cur.text+='\n'+l;else if(l.trim()){cur={name:'',text:l}}}
+ if(cur)out.push(cur);
+ return out.map(x=>({...x,text:x.text.trim()})).filter(x=>x.text&&!/^<.*(?:media|الوسائط).*>$/i.test(x.text));
+}
+
+/* ---- storage: each message is a small text document in the card, with its details in meta.realty ---- */
+async function ensureRealtyCard(){
+ if(CATS.some(([n])=>n===REALTY))return;
+ try{await saveCategory(REALTY);const c=CATS.find(([n])=>n===REALTY);if(c){c[1]='building';await saveCatalogOrder([REALTY,...CATS.map(([n])=>n).filter(n=>n!==REALTY)])}}catch(e){}
+}
+async function saveRealtyMessage(text,extra={}){
+ const r={...parseRealty(text),...Object.fromEntries(Object.entries(extra).filter(([,v])=>v!==''&&v!=null))};
+ const f=new File([text],'رسالة.txt',{type:'text/plain'});
+ const id=await saveDoc(f,{title:realtyTitle(r),cat:REALTY,exp:'',kind:'',ver:'',summary:''});
+ const m=await req(store('meta').get(id));m.realty={...r,text,status:'new',steps:{},added:Date.now()};m.title=realtyTitle(r);await storageWrite(m);
+ return id;
+}
+async function setRealty(d,patch){d.realty={...d.realty,...patch};if(patch.kind!==undefined||patch.property!==undefined||patch.deal!==undefined||patch.area!==undefined)d.title=realtyTitle(d.realty);await put(d)}
+const realtyItems=()=>live().filter(d=>d.cat===REALTY&&d.realty);
+const newRequests=()=>realtyItems().filter(d=>d.realty.kind==='request'&&d.realty.status==='new');
+
+/* ---- AI (optional): read a screenshot or a messy message ---- */
+async function realtyAI(content){
+ const prompt=`هذه رسالة عقارية (قد تكون لقطة شاشة من واتساب). استخرج JSON فقط بهذه الحقول:
+{"text":"نص الرسالة كما هو","kind":"request أو offer","property":"villa|apartment|building|land|townhouse|shop|office|warehouse|other","deal":"buy|sell|rent أو فارغ","area":"المنطقة","price":رقم بالدرهم أو null,"rooms":رقم أو null,"name":"اسم المرسل إن ظهر","phone":"رقم الهاتف إن ظهر"}
+request = شخص يطلب/يبحث عن عقار. offer = شخص يعرض عقارًا للبيع أو الإيجار.`;
+ return claudeJSON(MODEL1,[...content,{type:'text',text:prompt}]);
+}
+async function imageContent(blob){const c=await pageCanvas(blob,false,1200);const u=c.toDataURL('image/jpeg',.82);c.width=c.height=1;return[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:u.split(',')[1]}}]}
+
+/* ---- matching ---- */
+function matchScore(a,b){
+ if(!a.property||a.property!==b.property)return 0;let s=3;
+ const req=a.kind==='request'?a:b,off=a.kind==='request'?b:a;
+ if(req.deal&&off.deal){if((req.deal==='rent')!==(off.deal==='rent'))return 0;s+=1}
+ if(req.area&&off.area){const x=normAr(req.area),y=normAr(off.area);if(x.includes(y)||y.includes(x))s+=2}
+ if(req.price&&off.price){if(off.price<=req.price*1.15)s+=1;else if(off.price>req.price*1.5)s-=1}
+ if(req.rooms&&off.rooms&&off.rooms>=req.rooms)s+=1;
+ return s;
+}
+function matchesFor(d){const want=d.realty.kind==='request'?'offer':'request';return realtyItems().filter(x=>x.id!==d.id&&x.realty.kind===want&&x.realty.status!=='done').map(x=>({x,s:matchScore(d.realty,x.realty)})).filter(m=>m.s>=3).sort((a,b)=>b.s-a.s).slice(0,6).map(m=>m.x)}
+
+/* ---- guidance: missing info, steps, ready replies ---- */
+function missingInfo(r){const q=[];if(!r.property)q.push('نوع العقار المطلوب (فيلا، شقة، بناية…)؟');if(!r.deal)q.push('شراء أم إيجار؟');if(!r.area)q.push('المنطقة المفضلة؟');if(!r.price)q.push(r.deal==='rent'?'الميزانية السنوية التقريبية؟':'الميزانية التقريبية؟');if(!r.rooms&&['villa','apartment','townhouse'].includes(r.property))q.push('عدد الغرف المطلوب؟');if(r.deal==='buy')q.push('طريقة الدفع: كاش أم تمويل بنكي؟');q.push('متى يحتاج العقار؟');return q}
+function stepsFor(r){return r.kind==='offer'?['تأكد أن العقار متاح ومن صاحب الصلاحية بالبيع أو التأجير','اطلب الصور والمخطط وصورة سند الملكية','اتفق على السعر النهائي والعمولة','أرسل العرض للعملاء المطابقين','رتّب موعد المعاينة']:['تواصل مع العميل وأكّد طلبه','اسأل عن المعلومات الناقصة','أرسل له العروض المطابقة','رتّب موعد المعاينة','تفاوض واتفق على السعر','وثّق الاتفاق واستلم العربون']}
+function describe(r){return`${propLabel(r.property)}${r.deal?(r.deal==='rent'?' للإيجار':r.kind==='offer'?' للبيع':' للشراء'):''}${r.area?' في '+r.area:''}${r.rooms?' · '+r.rooms+' غرف':''}${r.price?' · '+fmtPrice(r.price)+' درهم':''}`}
+function replies(d){
+ const r=d.realty,hi=`السلام عليكم${r.name?' '+r.name:''}،`;
+ if(r.kind==='offer')return[{label:'رد على صاحب العرض',text:`${hi}\nبخصوص ${describe(r)}، هل ما زال متاحًا؟\nأرجو إرسال الصور والمخطط والسعر النهائي، ونسبة العمولة.\nشكرًا لك.`}];
+ const miss=missingInfo(r);
+ return[{label:'رد أولي وأسئلة',text:`${hi}\nوصلني طلبك على ${describe(r)}.\nحتى أرسل لك أنسب الخيارات، أحتاج أعرف:\n${miss.map(x=>'• '+x).join('\n')}\nتحت أمرك.`},
+  {label:'عندي خيارات',text:`${hi}\nبخصوص طلبك على ${describe(r)}، عندي خيارات مناسبة. يناسبك أرسل لك التفاصيل والصور ونرتب موعد معاينة؟`}];
+}
+const offerPitch=(off,client)=>`السلام عليكم${client.realty.name?' '+client.realty.name:''}،\nبخصوص طلبك، عندي ${describe(off.realty)}.\nيناسبك أرسل لك الصور والتفاصيل ونرتب معاينة؟`;
+
+/* ---- the card page: requests / offers tabs ---- */
+let realtyTab='request',realtyProp='';
+const _renderList2=renderList;
+renderList=function(){
+ if(cur!==REALTY)return _renderList2();
+ renderTop();['selb','viewmode','photo-size'].forEach(k=>{const b=$(k);if(b)b.remove()});const pt=$('photo-tools');if(pt)pt.remove();
+ const all=realtyItems(),loose=catRows().filter(d=>!d.realty),reqs=all.filter(d=>d.realty.kind==='request'),offs=all.filter(d=>d.realty.kind==='offer'),other=all.filter(d=>!['request','offer'].includes(d.realty.kind));
+ const base=realtyTab==='request'?reqs:realtyTab==='offer'?offs:other;
+ const props=[...new Set(base.map(d=>d.realty.property).filter(Boolean))];
+ const rows=base.filter(d=>!realtyProp||d.realty.property===realtyProp).sort((a,b)=>(a.realty.status==='done')-(b.realty.status==='done')||(b.ts||0)-(a.ts||0));
+ $('list').innerHTML=`<button class="btn realty-add" id="realty-add">${ico('plus',20)} إضافة رسالة طلب أو عرض</button>
+ <div class="seg"><button data-t="request" class="${realtyTab==='request'?'on':''}">الطلبات <b>${reqs.length}</b></button><button data-t="offer" class="${realtyTab==='offer'?'on':''}">العروض <b>${offs.length}</b></button>${other.length?`<button data-t="other" class="${realtyTab==='other'?'on':''}">للمراجعة <b>${other.length}</b></button>`:''}</div>
+ ${props.length>1?`<div class="chips">${['',...props].map(p=>`<button data-p="${p}" class="${realtyProp===p?'on':''}">${p?propIcon(p)+' '+propLabel(p):'الكل'}</button>`).join('')}</div>`:''}
+ ${rows.length?rows.map(realtyRow).join(''):`<div class="empty">${ico('building')}${realtyTab==='request'?'لا توجد طلبات بعد.':realtyTab==='offer'?'لا توجد عروض بعد.':'لا شيء للمراجعة.'}<br>انسخ رسالة من واتساب ثم اضغط «إضافة رسالة».</div>`}
+ ${loose.length?`<p class="m" style="margin-top:16px">ملفات أخرى في البطاقة</p>${loose.map(d=>docRow(d,false)).join('')}`:''}`;
+ $('realty-add').onclick=realtyAddSheet;
+ $('list').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{realtyTab=b.dataset.t;realtyProp='';renderList()});
+ $('list').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{realtyProp=b.dataset.p;renderList()});
+ wire($('list'),()=>catRows());
+};
+function realtyRow(d){const r=d.realty,st=r.status||'new',m=matchesFor(d).length;
+ return`<div class="doc realty-row st-${st}" data-id="${d.id}"><button class="realty-ico nolp" data-o="${d.id}" aria-label="فتح">${propIcon(r.property)}</button><button class="t nolp" data-o="${d.id}"><b>${esc(d.title)}</b><span>${esc([r.name,r.price?fmtPrice(r.price)+' درهم':'',r.rooms?r.rooms+' غرف':'',fmt(d.ts)].filter(Boolean).join(' · '))}</span><span class="realty-snip">${esc((r.text||'').split('\n').find(x=>x.trim())||'')}</span><span class="realty-tags"><i class="st">${st==='new'?'جديد':st==='doing'?'قيد المتابعة':'تم'}</i>${m?`<i class="mt">${m} ${r.kind==='request'?'عرض مطابق':'طلب مطابق'}</i>`:''}</span></button></div>`}
+
+/* ---- add messages ---- */
+function realtyAddSheet(){
+ sheet(`<h3>إضافة رسالة</h3><p class="m">انسخ رسالة الطلب أو العرض من واتساب (أو أكثر من رسالة) والصقها هنا. يتعرّف أوراقي على نوعها وتفاصيلها.</p>
+ <textarea id="rt-text" rows="7" placeholder="الصق الرسالة هنا…" style="width:100%;box-sizing:border-box;border-radius:14px;padding:12px;font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--bd)"></textarea>
+ <div class="row2"><input id="rt-name" type="text" placeholder="اسم المرسل (اختياري)"><input id="rt-phone" type="text" inputmode="tel" placeholder="رقم الواتساب (اختياري)" dir="ltr"></div>
+ <div class="row2"><button class="btn" id="rt-save">حفظ</button><button class="btn s" id="rt-paste">${ico('clip',18)} لصق</button></div>
+ <button class="act" id="rt-shot">${ico('image')}لقطة شاشة لرسالة${getKey()?'<small>تُقرأ بالقراءة الذكية</small>':'<small>تحتاج القراءة الذكية</small>'}</button>
+ <button class="act" id="rt-file">${ico('folder')}ملف محادثة واتساب (.txt)<small>تصدير محادثة بدون وسائط</small></button>
+ <button class="btn s" id="rt-x">إلغاء</button>`);
+ $('rt-x').onclick=hideSheet;
+ $('rt-paste').onclick=async()=>{try{const t=await navigator.clipboard.readText();if(t)$('rt-text').value=t;else toast('الحافظة فارغة')}catch(e){toast('اضغط مطولاً داخل المربع ثم «لصق»')}};
+ $('rt-shot').onclick=()=>{realtyPick('image/*')};$('rt-file').onclick=()=>{realtyPick('.txt,text/plain')};
+ $('rt-save').onclick=async()=>{const raw=$('rt-text').value.trim();if(!raw){toast('الصق رسالة أولاً',{err:1});return}
+  const msgs=splitMessages(raw),extra={name:$('rt-name').value.trim(),phone:$('rt-phone').value.trim()};
+  hideSheet();await saveRealtyBatch(msgs.length>1?msgs.map(m=>({text:m.text,extra:{...extra,name:extra.name||m.name}})):[{text:raw,extra:{...extra,name:extra.name||(msgs[0]&&msgs[0].name)||''}}])};
+}
+async function saveRealtyBatch(items,{onlyRealty=false}={}){
+ let saved=0,dup=0,skipped=0,lastId=null;const many=items.length>3;
+ for(let i=0;i<items.length;i++){if(many&&i%5===0)sheet(`<h3>جارٍ الحفظ…</h3><div class="pr"><div class="sp"></div><b>${i+1} من ${items.length}</b></div>`,true);
+  const it=items[i];if(onlyRealty){const r=parseRealty(it.text);if(!r.kind||!r.property){skipped++;continue}}
+  try{lastId=await saveRealtyMessage(it.text,it.extra||{});saved++}catch(e){if(e.dup)dup++}}
+ await load();if(many)hideSheet();realtyTab=items.length===1&&lastId?(docs.find(d=>d.id===lastId)?.realty.kind||'request'):realtyTab;if(!['request','offer'].includes(realtyTab))realtyTab='other';
+ if(cur!==REALTY)openCat(REALTY);else renderAll();
+ toast(saved?`تم حفظ ${saved} ${saved>1?'رسائل':'رسالة'}`+(dup?` · ${dup} مكررة`:'')+(skipped?` · تُجوهلت ${skipped} ليست طلبًا أو عرضًا`:''):(dup?'هذه الرسالة محفوظة مسبقًا':'لم يُتعرّف على أي طلب أو عرض'),{ms:5000});
+ if(saved===1&&lastId)openRealty(lastId);
+}
+function realtyPick(accept){const i=document.createElement('input');i.type='file';i.accept=accept;i.multiple=true;i.onchange=async()=>{const fs=[...i.files];hideSheet();for(const f of fs)await realtyFromFile(f)};i.click()}
+async function realtyFromFile(f){
+ if(/^text\/|\.txt$/i.test(f.type+' '+f.name)){const msgs=splitMessages(await f.text());await saveRealtyBatch(msgs.map(m=>({text:m.text,extra:{name:m.name}})),{onlyRealty:true});return}
+ if(!isImg(f)){toast('اختر لقطة شاشة أو ملف نصي',{err:1});return}
+ if(!getKey()){// keep the screenshot; details can be filled by hand
+  try{const id=await saveDoc(f,{title:'رسالة (صورة)',cat:REALTY,exp:'',kind:'',ver:'',summary:''});const m=await req(store('meta').get(id));m.realty={kind:'',property:'',deal:'',area:'',price:null,rooms:null,name:'',phone:'',text:'',status:'new',steps:{},added:Date.now()};await storageWrite(m);await load();realtyTab='other';openCat(REALTY);openRealty(id);toast('حُفظت الصورة. أكمل التفاصيل بالضغط على «تعديل»')}catch(e){toast(e.dup?'هذه الصورة محفوظة مسبقًا':errMsg(e),{err:1})}return}
+ aiStatus('جارٍ قراءة الرسالة…');
+ try{const o=await realtyAI(await imageContent(f));const text=String(o.text||'').trim()||'(رسالة من صورة)';
+  const id=await saveRealtyMessage(text,{kind:o.kind,property:PROPS[o.property]?o.property:'',deal:DEALS[o.deal]?o.deal:'',area:o.area||'',price:+o.price||null,rooms:+o.rooms||null,name:o.name||'',phone:o.phone||''});
+  await load();openCat(REALTY);openRealty(id);
+ }catch(e){toast(e.dup?'هذه الرسالة محفوظة مسبقًا':e.message==='key'?'مفتاح القراءة الذكية غير صحيح':'تعذّرت قراءة الصورة',{err:1})}finally{aiStatus('')}
+}
+
+/* ---- one request / offer: contact, message, details, steps, ready replies, matches ---- */
+const rpane=document.createElement('div');rpane.id='realty-pane';rpane.hidden=true;document.body.appendChild(rpane);
+let rOpenId=null;
+function openRealty(id){const d=docs.find(x=>x.id===id);if(!d||!d.realty)return;const first=rpane.hidden;rOpenId=id;drawRealty(d);rpane.hidden=false;if(first)push('realty');rpane.scrollTop=0}
+function closeRealty(fromBack){if(rpane.hidden)return;rpane.hidden=true;rOpenId=null;if(!fromBack)popL('realty');renderAll()}
+function drawRealty(d){
+ const r=d.realty,st=r.status||'new',done=r.steps||{},ms=matchesFor(d),wa=waNumber(r.phone);
+ rpane.innerHTML=`<div class="rp-top"><button class="ibtn" id="rp-x" aria-label="رجوع">${ico('back',21)}</button><h2>${propIcon(r.property)} ${esc(d.title)}</h2><button class="ibtn" id="rp-more" aria-label="المزيد">${ico('more',21)}</button></div>
+ <div class="rp-body">
+  <div class="seg rp-status">${[['new','جديد'],['doing','قيد المتابعة'],['done','تم']].map(([k,l])=>`<button data-st="${k}" class="${st===k?'on':''}">${l}</button>`).join('')}</div>
+  <div class="rp-card rp-contact"><div><b>${esc(r.name||'مرسل غير معروف')}</b><small dir="ltr">${esc(r.phone||'لا يوجد رقم')}</small></div>
+   <div class="rp-actions">${wa?`<a class="btn" href="${waLink(r.phone)}" target="_blank" rel="noopener">${ico('chat',18)} فتح المحادثة</a><a class="btn s" href="tel:${esc(r.phone.replace(/[^\d+]/g,''))}">${ico('phone',18)} اتصال</a>`:`<button class="btn s" id="rp-addphone">${ico('phone',18)} أضف رقم الواتساب</button>`}</div></div>
+  <div class="rp-card"><p class="rp-h">الرسالة</p><div class="rp-msg" dir="auto">${esc(r.text||'—')}</div>${d.type==='img'?`<button class="btn s" id="rp-img">${ico('image',18)} عرض الصورة</button>`:''}</div>
+  <div class="rp-card"><p class="rp-h">التفاصيل <button class="rp-edit" id="rp-edit">${ico('edit',16)} تعديل</button></p><div class="chips static">
+   <span>${r.kind==='offer'?'عرض':r.kind==='request'?'طلب':'غير محدد'}</span><span>${propIcon(r.property)} ${propLabel(r.property)}</span>${r.deal?`<span>${DEALS[r.deal]}</span>`:''}${r.area?`<span>📍 ${esc(r.area)}</span>`:''}${r.price?`<span>💰 ${fmtPrice(r.price)} درهم</span>`:''}${r.rooms?`<span>🛏️ ${r.rooms} غرف</span>`:''}</div>
+   ${r.kind==='request'&&missingInfo(r).length>2?`<p class="m">ناقص: ${missingInfo(r).slice(0,-1).map(esc).join('، ')}</p>`:''}</div>
+  <div class="rp-card"><p class="rp-h">${r.kind==='request'?'العروض المطابقة':r.kind==='offer'?'الطلبات المطابقة':'المطابقات'} (${ms.length})</p>${ms.length?ms.map(x=>`<div class="rp-match"><button class="nolp" data-open="${x.id}">${propIcon(x.realty.property)} <span><b>${esc(x.title)}</b><small>${esc([x.realty.name,x.realty.price?fmtPrice(x.realty.price)+' درهم':''].filter(Boolean).join(' · '))}</small></span></button>${r.kind==='request'&&wa?`<a class="btn s" href="${waLink(r.phone,offerPitch(x,d))}" target="_blank" rel="noopener">أرسل للعميل</a>`:r.kind==='offer'&&waNumber(x.realty.phone)?`<a class="btn s" href="${waLink(x.realty.phone,offerPitch(d,x))}" target="_blank" rel="noopener">أرسل له</a>`:''}</div>`).join(''):`<p class="m">لا يوجد ${r.kind==='request'?'عرض':'طلب'} مطابق حاليًا. عند إضافة رسالة مناسبة ستظهر هنا.</p>`}</div>
+  <div class="rp-card"><p class="rp-h">كيف تتعامل معه</p>${stepsFor(r).map((s,i)=>`<label class="rp-step"><input type="checkbox" data-step="${i}" ${done[i]?'checked':''}><span>${esc(s)}</span></label>`).join('')}</div>
+  <div class="rp-card"><p class="rp-h">ردود جاهزة</p>${replies(d).map((x,i)=>`<div class="rp-reply"><b>${esc(x.label)}</b><div class="rp-msg" dir="auto">${esc(x.text)}</div><div class="row2">${wa?`<a class="btn" href="${waLink(r.phone,x.text)}" target="_blank" rel="noopener">${ico('chat',18)} إرسال واتساب</a>`:''}<button class="btn s" data-copy="${i}">${ico('copy',18)} نسخ</button></div></div>`).join('')}</div>
+ </div>`;
+ $('rp-x').onclick=()=>closeRealty();
+ $('rp-more').onclick=()=>docMenu($('rp-more'),d.id,()=>catRows());
+ rpane.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{await setRealty(d,{status:b.dataset.st});vib();drawRealty(d)});
+ rpane.querySelectorAll('[data-step]').forEach(c=>c.onchange=async()=>{const s={...(d.realty.steps||{})};s[c.dataset.step]=c.checked;await setRealty(d,{steps:s,status:d.realty.status==='new'?'doing':d.realty.status});vib()});
+ rpane.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openRealty(b.dataset.open));
+ const rs=replies(d);rpane.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(rs[+b.dataset.copy].text);toast('تم النسخ ✓')}catch(e){toast('تعذّر النسخ',{err:1})}});
+ rpane.querySelectorAll('a[href^="https://wa.me"]').forEach(a=>a.addEventListener('click',()=>{if(d.realty.status==='new')setRealty(d,{status:'doing'})}));
+ $('rp-edit').onclick=()=>realtyEdit(d);if($('rp-addphone'))$('rp-addphone').onclick=()=>realtyEdit(d);
+ if($('rp-img'))$('rp-img').onclick=()=>view(d.id,[d],true);
+}
+function realtyEdit(d){const r=d.realty;
+ sheet(`<h3>تعديل التفاصيل</h3>
+ <div class="cg" id="re-kind">${[['request','طلب'],['offer','عرض']].map(([k,l])=>`<button data-v="${k}" class="${r.kind===k?'on':''}">${l}</button>`).join('')}</div>
+ <div class="cg" id="re-prop">${Object.keys(PROPS).map(k=>`<button data-v="${k}" class="${r.property===k?'on':''}">${propIcon(k)} ${propLabel(k)}</button>`).join('')}</div>
+ <div class="cg" id="re-deal">${Object.entries(DEALS).map(([k,l])=>`<button data-v="${k}" class="${r.deal===k?'on':''}">${l}</button>`).join('')}</div>
+ <input id="re-area" type="text" placeholder="المنطقة" value="${esc(r.area||'')}"><input id="re-price" type="text" inputmode="numeric" placeholder="السعر أو الميزانية بالدرهم" value="${r.price||''}"><input id="re-rooms" type="text" inputmode="numeric" placeholder="عدد الغرف" value="${r.rooms||''}">
+ <input id="re-name" type="text" placeholder="اسم المرسل" value="${esc(r.name||'')}"><input id="re-phone" type="text" inputmode="tel" dir="ltr" placeholder="رقم الواتساب" value="${esc(r.phone||'')}">
+ ${d.type==='img'?`<textarea id="re-text" rows="4" placeholder="نص الرسالة" style="width:100%;box-sizing:border-box;border-radius:14px;padding:10px;font:inherit;background:var(--card);color:var(--tx);border:1px solid var(--bd)">${esc(r.text||'')}</textarea>`:''}
+ <div class="row2"><button class="btn" id="re-save">حفظ</button><button class="btn s" id="re-x">إلغاء</button></div>`);
+ const pick={kind:r.kind,property:r.property,deal:r.deal};
+ [['re-kind','kind'],['re-prop','property'],['re-deal','deal']].forEach(([g,k])=>$(g).querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{pick[k]=pick[k]===b.dataset.v?'':b.dataset.v;$(g).querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x.dataset.v===pick[k]))}));
+ $('re-x').onclick=hideSheet;
+ $('re-save').onclick=async()=>{const num=v=>{const n=parseFloat(toLatinDigits(v).replace(/[^\d.]/g,''));return isFinite(n)&&n>0?n:null};
+  await setRealty(d,{...pick,area:$('re-area').value.trim(),price:num($('re-price').value),rooms:num($('re-rooms').value),name:$('re-name').value.trim(),phone:$('re-phone').value.trim(),...($('re-text')?{text:$('re-text').value.trim()}:{})});
+  hideSheet();drawRealty(d);toast('تم الحفظ ✓')};
+}
+swipeDown(rpane,{canStart:()=>!rpane.hidden&&!sheetOn(),scroller:()=>rpane,move:(dy,a)=>slide(rpane,dy,a),close:()=>slideAway(rpane,()=>closeRealty())});
+
+/* taps on a message in the card open its page; the image of a screenshot opens in the viewer */
+const _view2=view;
+view=function(id,list,raw){const d=docs.find(x=>x.id===id);if(!raw&&d&&d.realty){openRealty(id);return}return _view2(id,list)};
+/* the ＋ button inside the card adds messages */
+const _addSheet2=addSheet;addSheet=function(){if(cur===REALTY)return realtyAddSheet();return _addSheet2()};
+/* files added inside the card: WhatsApp exports and screenshots become requests/offers */
+{const _fa=fastAdd;fastAdd=async function(files){if(cur!==REALTY)return _fa(files);for(const f of files)await realtyFromFile(f)}}
+
+/* ---- banner alert + special card on the home screen ---- */
+const _renderHome2=renderHome;
+renderHome=function(){
+ _renderHome2();
+ const nr=newRequests();let el=$('realty-alert');
+ if(nr.length){if(!el){el=document.createElement('button');el.id='realty-alert';el.className='realty-alert';$('pAll').parentNode.insertBefore(el,$('pAll'))}
+  const last=nr.sort((a,b)=>(b.ts||0)-(a.ts||0))[0],types=[...new Set(nr.map(d=>propLabel(d.realty.property)))];
+  el.innerHTML=`<span class="ra-dot"></span><span class="ra-txt"><b>${nr.length===1?`يوجد طلب على ${propLabel(last.realty.property)}`:`${nr.length} طلبات جديدة`}</b><small>${nr.length===1?esc([last.realty.area,last.realty.name].filter(Boolean).join(' · ')||'اضغط للتعامل معه'):esc(types.join('، '))}</small></span>${ico('back',18)}`;
+  el.onclick=()=>{if(nr.length===1){openCat(REALTY);openRealty(last.id)}else{realtyTab='request';openCat(REALTY)}};
+ }else if(el)el.remove();
+ const card=document.querySelector(`.cat[data-c="${CSS.escape(REALTY)}"]`);
+ if(card){card.classList.add('realty-card');const sub=card.querySelector('.sub');const items=realtyItems();if(sub)sub.textContent=nr.length?`${nr.length} طلب جديد`:`${items.filter(d=>d.realty.kind==='request').length} طلب · ${items.filter(d=>d.realty.kind==='offer').length} عرض`;if(nr.length)card.classList.add('has-new');else card.classList.remove('has-new')}
+};
+setTimeout(async function ensure(){if(!db){setTimeout(ensure,800);return}await ensureRealtyCard();renderAll()},600);
 
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
