@@ -218,6 +218,34 @@ body:has(#sheet.on) .toast:not(.err){display:none}
 
 
 
+
+/* 4.8.1: compact banner that scrolls away, slim bar on top, page never slides sideways */
+html{background:var(--bg)}
+html,body{overflow-x:hidden;overscroll-behavior-x:none;max-width:100%}
+body{touch-action:pan-y pinch-zoom}
+.chips,#excel-content,#excel-pane{touch-action:pan-x pan-y pinch-zoom}
+.ban{position:relative!important;top:auto!important;padding:calc(8px + var(--sat)) 12px 12px!important;border-radius:0 0 22px 22px!important}
+.ban .bt{gap:10px!important}
+.ban .logo{width:44px!important;height:44px!important;border-radius:14px!important;animation:none!important;box-shadow:0 3px 10px #0003!important}
+.ban .bh{font-size:25px!important;line-height:1.25!important;margin:0!important}
+.ban .bs{display:none!important}
+.ban .gear{width:40px!important;height:40px!important}
+.ban .stats{margin:10px auto 0!important;gap:6px!important}
+.ban .stats>*{min-height:0!important;padding:5px 4px!important;display:flex!important;flex-wrap:wrap;align-items:baseline;justify-content:center;column-gap:5px;border-radius:12px!important}
+.ban .stats b{font-size:15px!important;line-height:1.45!important;display:inline!important}
+.ban .stats span{font-size:11px!important;line-height:1.4}
+.banner-all{margin:8px 0 0!important;padding:7px 12px!important;font-size:14px!important;border-radius:13px!important}
+.realty-alert{margin:8px 0 0!important;padding:6px 12px!important;border-radius:13px!important;gap:8px!important}
+.realty-alert .ra-txt{display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden}.realty-alert b{font-size:13.5px!important;display:inline!important;flex:none}.realty-alert small{font-size:11.5px!important;display:inline!important;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#sL{font-size:13px!important}
+body.in-cat .ban .stats,body.in-cat #pAll,body.in-cat #realty-alert{display:none!important}body.in-cat .ban{padding-bottom:10px!important}.realty-alert .ra-dot{width:9px!important;height:9px!important}
+#mini-bar{position:fixed;top:0;left:0;right:0;z-index:31;display:flex;align-items:center;gap:8px;padding:calc(5px + var(--sat)) 10px 6px;background:var(--pattern);border-bottom:1.5px solid var(--gold);border-radius:0 0 16px 16px;box-shadow:0 5px 14px #0003;transform:translateY(-105%);transition:transform .2s ease;color:var(--tx)}
+#mini-bar.on{transform:none}
+#mini-bar .mb-logo{width:32px;height:32px;flex:none;border-radius:10px;overflow:hidden}#mini-bar .mb-logo svg{width:100%;height:100%;display:block}
+#mini-bar b{flex:1;min-width:0;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold)}
+#mini-bar .mb-btn{width:36px;height:36px;flex:none;display:grid;place-items:center;border:0;border-radius:11px;background:var(--royal-raised);color:var(--ac);padding:0}
+#mini-bar .mb-btn[hidden]{display:none}
+#mb-dot{display:flex;align-items:center;gap:5px;flex:none;border:0;border-radius:12px;padding:4px 9px;background:#ff6b5a;color:#fff;font:inherit;font-size:12px;font-weight:700}#mb-dot[hidden]{display:none}
 /* 4.8.0 real estate */
 .realty-alert{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:10px 14px;border-radius:16px;border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(var(--gr),.32),rgba(var(--gr),.14));color:var(--tx);text-align:start;font:inherit;box-shadow:0 4px 14px #0003}
 .realty-alert .ra-dot{width:12px;height:12px;border-radius:50%;background:#ff6b5a;box-shadow:0 0 0 4px #ff6b5a44;flex:none;animation:ra 1.6s infinite}
@@ -429,7 +457,7 @@ window.pdfjsLib=p;window.dispatchEvent(new Event("pdfready"));
 </script>
 <script>
 "use strict";
-const VERSION="4.8.0";
+const VERSION="4.8.1";
 const CATS=[["الفيديوهات","camera"],["الصوتيات","book"],["ملفات مكتبية","folder"],["جداول Excel","grid"],["اتفاقيات","sign"],["أعمالي","briefcase"],["أوراق شخصية","idcard"],["فواتير","receipt"],["شهادات ورخص","award"],["أخرى","folder"]];
 const ALL="__all",SOON=90;
 const MODEL1="claude-haiku-5-5",MODEL2="claude-haiku-5-5";/* 4.6.2: one fast reading */
@@ -1988,7 +2016,7 @@ function aiEnqueue(ids){if(!ids.length)return;aiQ.push(...ids);aiTotal+=ids.leng
 async function runAi(){
  if(aiRunning)return;aiRunning=true;let last=null;
  try{while(aiQ.length){const id=aiQ.shift(),d=docs.find(x=>x.id===id&&!x.del);if(!d){aiDone++;continue}
-  aiStatus(aiTotal>1?`القراءة الذكية ${aiDone+1} من ${aiTotal}`:'جارٍ قراءة المستند…');
+
   let r=null;try{const blob=await getBlob(id);r=await analyze(new File([blob],d.name||'file',{type:d.mime||blob.type}),d.type==='pdf')}
   catch(e){if(e.message==='key'||e.message==='nokey'){aiQ.length=0;toast(e.message==='key'?'مفتاح القراءة الذكية غير صحيح. عدّله من الإعدادات.':'',{err:1,ms:5000});break}if(navigator.onLine===false){aiQ.length=0;toast('لا يوجد اتصال؛ حُفظت الملفات دون قراءة',{err:1});break}}
   aiDone++;if(r)last=await applyAi(id,r)||last;
@@ -2141,7 +2169,7 @@ async function autoOrganize(){
    if(!autoOn()||lockedNow)break;const before={cat:d.cat,title:d.title,exp:d.exp};let c=null;
    if(!d.autoL){try{c=await localCard(d)}catch(e){}d.autoL=1}
    if(!c&&!d.autoA&&getKey()&&aiBudget>0&&['img','pdf'].includes(d.type)&&(d.size||0)<=8*1048576){
-    aiBudget--;aiStatus('يرتّب أوراقي مستنداتك…');
+    aiBudget--;
     try{const blob=await getBlob(d.id),r=await analyze(new File([blob],d.name||'file',{type:d.mime||blob.type}),d.type==='pdf');d.autoA=1;c=pickCard(r.cat);
      if(r.level!=='none'){if(r.title&&/^مستند\s/.test(d.title||''))d.title=r.title;if(r.exp&&!d.exp)d.exp=r.exp;if(r.summary&&!d.summary)d.summary=r.summary;d.kind=d.kind||r.label||'';d.ver=d.ver||r.level}}
     catch(e){if(e.message==='key'||e.message==='nokey'||navigator.onLine===false)aiBudget=0}
@@ -2456,7 +2484,7 @@ renderHome=function(){
  const nr=newRequests();let el=$('realty-alert');
  if(nr.length){if(!el){el=document.createElement('button');el.id='realty-alert';el.className='realty-alert';$('pAll').parentNode.insertBefore(el,$('pAll'))}
   const last=nr.sort((a,b)=>(b.ts||0)-(a.ts||0))[0],types=[...new Set(nr.map(d=>propLabel(d.realty.property)))];
-  el.innerHTML=`<span class="ra-dot"></span><span class="ra-txt"><b>${nr.length===1?`يوجد طلب على ${propLabel(last.realty.property)}`:`${nr.length} طلبات جديدة`}</b><small>${nr.length===1?esc([last.realty.area,last.realty.name].filter(Boolean).join(' · ')||'اضغط للتعامل معه'):esc(types.join('، '))}</small></span>${ico('back',18)}`;
+  el.innerHTML=`<span class="ra-dot"></span><span class="ra-txt"><b>${nr.length===1?`يوجد طلب على ${propLabel(last.realty.property)}`:`${nr.length} طلبات جديدة`}</b><small>· ${nr.length===1?esc([last.realty.area,last.realty.name].filter(Boolean).join(' · ')||'اضغط للتعامل معه'):esc(types.join('، '))}</small></span>${ico('back',18)}`;
   el.onclick=()=>{if(nr.length===1){openCat(REALTY);openRealty(last.id)}else{realtyTab='request';openCat(REALTY)}};
  }else if(el)el.remove();
  const card=document.querySelector(`.cat[data-c="${CSS.escape(REALTY)}"]`);
@@ -2464,12 +2492,27 @@ renderHome=function(){
 };
 setTimeout(async function ensure(){if(!db){setTimeout(ensure,800);return}await ensureRealtyCard();renderAll()},600);
 
+
+/* ---- 4.8.1: slim bar shown once the banner scrolls away ---- */
+{const mini=document.createElement('div');mini.id='mini-bar';
+ mini.innerHTML=`<button class="mb-btn" id="mb-back" aria-label="رجوع" hidden>${ico('back',19)}</button><div class="mb-logo">${document.querySelector('#ban .logo').innerHTML}</div><b id="mb-title">أوراقي</b><button id="mb-dot" hidden></button><button class="mb-btn" id="mb-gear" aria-label="الإعدادات">${ico('gear',19)}</button>`;
+ document.body.appendChild(mini);
+ const upd=()=>{const show=$('ban').getBoundingClientRect().bottom<mini.offsetHeight+4&&!viewerOpen;mini.classList.toggle('on',show);
+  $('mb-title').textContent=cur?catTitle():'أوراقي';$('mb-back').hidden=!cur;
+  let n=0;try{n=newRequests().length}catch(e){}$('mb-dot').hidden=!n;$('mb-dot').textContent=n?(n===1?'طلب جديد':n+' طلبات'):''};
+ addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);
+ $('mb-back').onclick=()=>goHome();$('mb-gear').onclick=()=>settingsSheet();$('mb-title').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+ $('mb-dot').onclick=()=>{const nr=newRequests();if(nr.length===1){openCat(REALTY);openRealty(nr[0].id)}else{realtyTab='request';openCat(REALTY)}};
+ const _ra=renderAll;renderAll=function(){_ra();document.body.classList.toggle('in-cat',!!cur);upd()};
+ const _oc=openCat;openCat=function(c){_oc(c);document.body.classList.add('in-cat');upd()};const _hc=hideCat;hideCat=function(){_hc();document.body.classList.remove('in-cat');upd()};setTimeout(upd,500);
+ document.documentElement.style.setProperty('--bh',mini.offsetHeight+'px');}
+
 /* ---------- bar + boot ---------- */
 $("gear").innerHTML=ico("gear",22);$("gear").onclick=settingsSheet;
 $("ib1").innerHTML=ico("home");$("ib2").innerHTML=ico("plus");$("ib3").innerHTML=ico("search");$("vc").innerHTML=ico("x",22);$("vsh").innerHTML=ico("share",22);
 $("bh").onclick=()=>{hideSheet();closeMenu();$("q").value="";goHome();renderHome();scrollTo({top:0,behavior:"smooth"})};
 $("bq").onclick=()=>{goHome();openSearchSheet()};
-{const ro=()=>document.documentElement.style.setProperty("--bh",$("ban").offsetHeight+"px");ro();addEventListener("resize",ro);if(window.ResizeObserver)new ResizeObserver(ro).observe($("ban"))}
+{const ro=()=>document.documentElement.style.setProperty("--bh",($("mini-bar")?$("mini-bar").offsetHeight:$("ban").offsetHeight)+"px");ro();addEventListener("resize",ro);if(window.ResizeObserver)new ResizeObserver(ro).observe($("ban"))}
 addEventListener("unhandledrejection",e=>{console.warn(e.reason)});
 (async()=>{
   try{
